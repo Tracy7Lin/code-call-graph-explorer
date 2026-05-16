@@ -1,4 +1,5 @@
 import unittest
+from pathlib import Path
 
 from backend.analyzer.framework import (
     build_default_assignment_rules,
@@ -97,6 +98,13 @@ class ResolutionFrameworkTests(unittest.TestCase):
         self.assertEqual(adapter.language_id, "python")
         self.assertTrue(callable(adapter.build_symbol_index))
         self.assertTrue(callable(adapter.analyze_file))
+        self.assertEqual(adapter.build_symbol_index.__module__, "backend.languages.python")
+        self.assertEqual(adapter.analyze_file.__module__, "backend.languages.python")
+
+    def test_canonical_python_packages_exist(self) -> None:
+        repo_root = Path(__file__).resolve().parents[1]
+        self.assertTrue((repo_root / "backend" / "languages" / "python" / "analyzer" / "__init__.py").exists())
+        self.assertTrue((repo_root / "backend" / "languages" / "python" / "indexer" / "__init__.py").exists())
 
 
 if __name__ == "__main__":

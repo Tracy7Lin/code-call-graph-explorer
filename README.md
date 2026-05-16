@@ -21,6 +21,19 @@ Planned work is tracked in [docs/roadmap.md](docs/roadmap.md).
 - Inspect symbol signatures, source snippets, docstrings, and static facts
 - Serve a zero-dependency browser UI from the local Python backend
 
+## Architecture Status
+
+The repository is now moving toward a real `core + language adapters` structure:
+
+- `backend/core` holds shared semantics
+- `backend/languages/python` is the canonical home for Python-specific analysis and indexing
+- `backend/analyzer` and `backend/indexer` remain as transitional compatibility layers during migration
+
+Framework and migration guidance live in:
+
+- [docs/2026-05-16-global-framework-design.md](docs/2026-05-16-global-framework-design.md)
+- [docs/2026-05-16-python-adapter-migration-design.md](docs/2026-05-16-python-adapter-migration-design.md)
+
 ## Quick Start
 
 ```bash
@@ -50,3 +63,5 @@ python scripts/dev.py quality
 - Change log: [CHANGELOG.md](CHANGELOG.md)
 - Structure notes: [docs/project-structure.md](docs/project-structure.md)
 - Roadmap: [docs/roadmap.md](docs/roadmap.md)
+- Python adapter migration requirements: [docs/2026-05-16-python-adapter-migration-requirements.md](docs/2026-05-16-python-adapter-migration-requirements.md)
+- Python adapter migration design: [docs/2026-05-16-python-adapter-migration-design.md](docs/2026-05-16-python-adapter-migration-design.md)

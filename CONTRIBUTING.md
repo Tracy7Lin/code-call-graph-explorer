@@ -27,11 +27,18 @@ python scripts/dev.py serve-sample
 
 ## Repository Expectations
 
-- `backend/analyzer` owns AST parsing and edge extraction.
-- `backend/indexer` owns repository-wide symbol lookup.
+- `backend/languages/python` is the canonical home for Python-specific analyzer and indexer code.
+- `backend/analyzer` and `backend/indexer` are transitional compatibility layers and should not become the main place for new Python logic.
 - `backend/app` owns service orchestration and HTTP serving.
+- `backend/core` owns shared semantics that should stay language-agnostic.
 - `frontend` stays dependency-light and consumes the backend API surface directly.
 - `fixtures` contains deterministic sample repositories for tests and demos.
+
+## Migration Notes
+
+- When extending Python analysis behavior, prefer `backend/languages/python/analyzer`.
+- When extending Python repository indexing behavior, prefer `backend/languages/python/indexer`.
+- If a legacy top-level module must remain, keep it as a thin forwarding wrapper only.
 
 ## Pull Requests
 

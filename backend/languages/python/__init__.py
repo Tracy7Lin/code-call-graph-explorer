@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from backend.analyzer.file_analyzer import analyze_file
-from backend.indexer.symbol_index import SymbolIndex
+from backend.languages.python.analyzer.file_analyzer import analyze_file
+from backend.languages.python.indexer.symbol_index import SymbolIndex
 
 
 class PythonLanguageAdapter:

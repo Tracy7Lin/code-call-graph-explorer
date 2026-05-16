@@ -22,6 +22,9 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 - Requirements: `docs/2026-05-16-global-framework-requirements.md`
 - Design: `docs/2026-05-16-global-framework-design.md`
 - Plan: `docs/superpowers/plans/2026-05-16-global-framework-upgrade.md`
+- Python adapter migration requirements: `docs/2026-05-16-python-adapter-migration-requirements.md`
+- Python adapter migration design: `docs/2026-05-16-python-adapter-migration-design.md`
+- Python adapter migration plan: `docs/superpowers/plans/2026-05-16-python-adapter-migration.md`
 
 ## Later Work
 

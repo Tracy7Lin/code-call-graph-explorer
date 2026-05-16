@@ -12,11 +12,19 @@
 
 ### `backend/analyzer`
 
-Parses Python files, extracts symbols, and builds call edges for the current target file.
+Transitional compatibility layer for older imports. New Python analyzer implementation should live under `backend/languages/python/analyzer`.
 
 ### `backend/indexer`
 
-Builds lightweight repository symbol maps used for cross-file lookup and ambiguity detection.
+Transitional compatibility layer for older imports. New Python indexer implementation should live under `backend/languages/python/indexer`.
+
+### `backend/core`
+
+Holds shared semantics that should remain language-agnostic.
+
+### `backend/languages/python`
+
+Canonical home for Python-specific analysis and indexing code.
 
 ### `backend/app`
 
@@ -24,7 +32,7 @@ Exposes the analyzer through a service layer and the local HTTP server.
 
 ### `backend/common`
 
-Holds shared dataclasses and API-facing models.
+Holds shared dataclasses and API-facing models until a later core-model migration.
 
 ## Frontend Responsibilities
 
@@ -40,3 +48,4 @@ The frontend is intentionally simple:
 - `tests/test_analyzer.py`: static analysis behavior
 - `tests/test_api.py`: service/API behavior
 - `tests/test_repository_governance.py`: repository baseline artifacts
+- `tests/test_resolution_framework.py`: framework and structural boundary contracts
