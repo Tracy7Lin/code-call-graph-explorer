@@ -26,6 +26,7 @@ Planned work is tracked in [docs/roadmap.md](docs/roadmap.md).
 The repository is now moving toward a real `core + language adapters` structure:
 
 - `backend/core` holds shared semantics
+- `backend/languages` holds the reusable adapter framework and registry
 - `backend/languages/python` is the canonical home for Python-specific analysis and indexing
 - `backend/app/pipeline.py` owns service-to-adapter execution wiring
 - `backend/analyzer` and `backend/indexer` remain as transitional compatibility layers during migration
@@ -35,6 +36,7 @@ Framework and migration guidance live in:
 - [docs/2026-05-16-global-framework-design.md](docs/2026-05-16-global-framework-design.md)
 - [docs/2026-05-16-python-adapter-migration-design.md](docs/2026-05-16-python-adapter-migration-design.md)
 - [docs/2026-05-16-service-pipeline-design.md](docs/2026-05-16-service-pipeline-design.md)
+- [docs/2026-05-16-language-adapter-framework-design.md](docs/2026-05-16-language-adapter-framework-design.md)
 
 ## Quick Start
 
@@ -69,3 +71,5 @@ python scripts/dev.py quality
 - Python adapter migration design: [docs/2026-05-16-python-adapter-migration-design.md](docs/2026-05-16-python-adapter-migration-design.md)
 - Service pipeline migration requirements: [docs/2026-05-16-service-pipeline-requirements.md](docs/2026-05-16-service-pipeline-requirements.md)
 - Service pipeline migration design: [docs/2026-05-16-service-pipeline-design.md](docs/2026-05-16-service-pipeline-design.md)
+- Language adapter framework requirements: [docs/2026-05-16-language-adapter-framework-requirements.md](docs/2026-05-16-language-adapter-framework-requirements.md)
+- Language adapter framework design: [docs/2026-05-16-language-adapter-framework-design.md](docs/2026-05-16-language-adapter-framework-design.md)

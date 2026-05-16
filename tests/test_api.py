@@ -19,6 +19,7 @@ class ExplorerServiceTests(unittest.TestCase):
         self.assertEqual(self.service.pipeline.adapter.language_id, "python")
         self.assertEqual(self.service.pipeline.__class__.__module__, "backend.app.pipeline")
         self.assertEqual(self.service.pipeline.adapter.__class__.__module__, "backend.languages.python")
+        self.assertEqual(self.service.pipeline.language_id, "python")
 
     def test_analyze_file_returns_stable_shape(self) -> None:
         payload = self.service.analyze_file(self.target_file).to_dict()

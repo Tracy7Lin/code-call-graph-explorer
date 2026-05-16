@@ -28,6 +28,9 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 - Service pipeline migration requirements: `docs/2026-05-16-service-pipeline-requirements.md`
 - Service pipeline migration design: `docs/2026-05-16-service-pipeline-design.md`
 - Service pipeline migration plan: `docs/superpowers/plans/2026-05-16-service-pipeline-migration.md`
+- Language adapter framework requirements: `docs/2026-05-16-language-adapter-framework-requirements.md`
+- Language adapter framework design: `docs/2026-05-16-language-adapter-framework-design.md`
+- Language adapter framework plan: `docs/superpowers/plans/2026-05-16-language-adapter-framework.md`
 
 ## Later Work
 

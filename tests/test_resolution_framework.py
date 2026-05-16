@@ -24,6 +24,7 @@ from backend.analyzer.rules_name_calls import (
     resolve_top_level,
 )
 from backend.analyzer.types import ResolutionReason, ResolutionStatus
+from backend.languages import get_adapter, get_default_adapter, list_adapters
 from backend.core.semantics import SharedResolutionReason, SharedResolutionStatus
 from backend.languages.python import PythonLanguageAdapter
 
@@ -105,6 +106,12 @@ class ResolutionFrameworkTests(unittest.TestCase):
         repo_root = Path(__file__).resolve().parents[1]
         self.assertTrue((repo_root / "backend" / "languages" / "python" / "analyzer" / "__init__.py").exists())
         self.assertTrue((repo_root / "backend" / "languages" / "python" / "indexer" / "__init__.py").exists())
+
+    def test_language_adapter_registry_exposes_python(self) -> None:
+        adapters = list_adapters()
+        self.assertIn("python", adapters)
+        self.assertIsInstance(get_adapter("python"), PythonLanguageAdapter)
+        self.assertIsInstance(get_default_adapter(), PythonLanguageAdapter)
 
 
 if __name__ == "__main__":

@@ -4,9 +4,10 @@ from pathlib import Path
 
 from backend.languages.python.analyzer.file_analyzer import analyze_file
 from backend.languages.python.indexer.symbol_index import SymbolIndex
+from backend.languages.types import LanguageAdapter
 
 
-class PythonLanguageAdapter:
+class PythonLanguageAdapter(LanguageAdapter):
     language_id = "python"
 
     def build_symbol_index(self, repo_root: Path) -> SymbolIndex:

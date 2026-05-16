@@ -22,6 +22,10 @@ Transitional compatibility layer for older imports. New Python indexer implement
 
 Holds shared semantics that should remain language-agnostic.
 
+### `backend/languages`
+
+Holds the shared adapter contract and registry, plus language-specific implementations.
+
 ### `backend/languages/python`
 
 Canonical home for Python-specific analysis and indexing code.
