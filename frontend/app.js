@@ -45,7 +45,7 @@ expandButton.addEventListener("click", async () => {
 });
 
 jumpButton.addEventListener("click", async () => {
-  if (!selectedSymbol || selectedSymbol.symbol_type === "unresolved") return;
+  if (!selectedSymbol || selectedSymbol.symbol_type === "unresolved" || selectedSymbol.symbol_type === "ambiguous") return;
   const repoRoot = document.getElementById("repo-root").value.replace(/[\\/]+$/, "");
   document.getElementById("target-file").value = `${repoRoot}/${selectedSymbol.file_path}`;
   form.requestSubmit();
@@ -75,7 +75,7 @@ async function selectNode(symbolId) {
   selectedNodeId = symbolId;
   selectedSymbol = currentGraph.nodes.find((node) => node.symbol_id === symbolId) || null;
   expandButton.disabled = false;
-  jumpButton.disabled = !selectedSymbol || selectedSymbol.symbol_type === "unresolved";
+  jumpButton.disabled = !selectedSymbol || selectedSymbol.symbol_type === "unresolved" || selectedSymbol.symbol_type === "ambiguous";
   const withLlm = llmCheckbox.checked ? "1" : "0";
   const response = await fetch(`/api/node?symbol_id=${encodeURIComponent(symbolId)}&with_llm=${withLlm}`);
   const detail = await response.json();
@@ -114,7 +114,8 @@ function renderGraph(graph) {
     line.setAttribute("y1", from.y);
     line.setAttribute("x2", to.x);
     line.setAttribute("y2", to.y);
-    line.setAttribute("class", edge.resolved ? "edge" : "edge unresolved");
+    const edgeClass = edge.status === "ambiguous" ? "edge ambiguous" : edge.resolved ? "edge" : "edge unresolved";
+    line.setAttribute("class", edgeClass);
     graphSvg.appendChild(line);
   });
 
@@ -125,6 +126,7 @@ function renderGraph(graph) {
     const classes = ["node"];
     if (!centerIds.has(node.symbol_id)) classes.push("external");
     if (node.symbol_type === "unresolved") classes.push("unresolved");
+    if (node.symbol_type === "ambiguous") classes.push("ambiguous");
     group.setAttribute("class", classes.join(" "));
     group.addEventListener("click", () => selectNode(node.symbol_id));
 
@@ -150,6 +152,8 @@ function renderDetail(detail) {
   detailContent.hidden = false;
   const symbol = detail.symbol;
   const insight = detail.insight;
+  const outboundEdges = detail.outbound_edges || [];
+  const advisorySuggestions = detail.advisory_suggestions || [];
   detailContent.innerHTML = `
     <h2>${symbol.qualname}</h2>
     <p><strong>${symbol.signature}</strong></p>
@@ -159,6 +163,12 @@ function renderDetail(detail) {
     <ul class="detail-list">${detail.callers.map((item) => `<li>${item}</li>`).join("") || "<li>None</li>"}</ul>
     <h3>Callees</h3>
     <ul class="detail-list">${detail.callees.map((item) => `<li>${item}</li>`).join("") || "<li>None</li>"}</ul>
+    <h3>Resolution Basis</h3>
+    <ul class="detail-list">${outboundEdges.map(renderEdgeDetail).join("") || "<li>None</li>"}</ul>
+    ${advisorySuggestions.length ? `
+      <h3>Advisory Suggestions</h3>
+      ${advisorySuggestions.map(renderSuggestion).join("")}
+    ` : ""}
     ${insight ? `
       <h3>Insight</h3>
       <p>${insight.summary}</p>
@@ -182,4 +192,21 @@ function escapeHtml(value) {
     .replaceAll("&", "&amp;")
     .replaceAll("<", "&lt;")
     .replaceAll(">", "&gt;");
+}
+
+function renderEdgeDetail(edge) {
+  return `<li><strong>${escapeHtml(edge.call_expr)}</strong>: ${escapeHtml(edge.status)} via ${escapeHtml(edge.reason)}</li>`;
+}
+
+function renderSuggestion(item) {
+  return `
+    <div class="detail-callout ${escapeHtml(item.edge_status)}">
+      <strong>${escapeHtml(item.call_expr)}</strong>
+      <p>${escapeHtml(item.summary)}</p>
+      <p>Reason: ${escapeHtml(item.reason)}</p>
+      ${item.candidate_symbol_ids && item.candidate_symbol_ids.length
+        ? `<p>Candidates: ${item.candidate_symbol_ids.map((value) => escapeHtml(value)).join(", ")}</p>`
+        : ""}
+    </div>
+  `;
 }

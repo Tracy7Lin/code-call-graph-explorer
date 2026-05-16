@@ -21,7 +21,12 @@
           </label>
           <button type="submit">Analyze file</button>
         </form>
-        <p class="hint">Unresolved nodes stay visible in red so the graph does not pretend certainty.</p>
+        <p class="hint">Confirmed edges stay solid. Unresolved and ambiguous paths stay visually separate so the graph does not pretend certainty.</p>
+        <div class="legend">
+          <span class="legend-chip resolved">Resolved</span>
+          <span class="legend-chip ambiguous">Ambiguous</span>
+          <span class="legend-chip unresolved">Unresolved</span>
+        </div>
       </section>
       <section class="panel graph-panel">
         <div class="toolbar">

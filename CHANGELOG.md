@@ -2,6 +2,19 @@
 
 All notable changes to this repository will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- Richer call edge status metadata with explicit resolution reasons
+- Advisory suggestion payloads for unresolved and ambiguous calls
+- Accuracy-improvement design and execution documents
+
+### Changed
+
+- Improved Python resolution for module alias function calls
+- Distinct ambiguous vs unresolved rendering in the browser UI
+
 ## [0.1.0] - 2026-05-16
 
 ### Added

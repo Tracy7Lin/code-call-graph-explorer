@@ -25,6 +25,7 @@ class SymbolIndex:
     imports_by_file: dict[str, dict[str, ImportRef]] = field(default_factory=dict)
     module_aliases_by_file: dict[str, dict[str, str]] = field(default_factory=dict)
     module_to_file: dict[str, str] = field(default_factory=dict)
+    factory_return_types: dict[str, str] = field(default_factory=dict)
 
     @classmethod
     def build(cls, repo_root: Path) -> "SymbolIndex":
@@ -41,6 +42,8 @@ class SymbolIndex:
 
         for path in python_files:
             index._scan_file(path)
+        for path in python_files:
+            index._scan_factory_returns(path)
         return index
 
     def rel_path(self, path: Path) -> str:
@@ -60,25 +63,41 @@ class SymbolIndex:
         return list(self.symbols_by_file.get(rel_path, []))
 
     def resolve_imported_symbol(self, current_file: str, imported_name: str) -> str | None:
+        candidates = self.resolve_imported_symbol_candidates(current_file, imported_name)
+        return candidates[0] if len(candidates) == 1 else None
+
+    def resolve_imported_symbol_candidates(self, current_file: str, imported_name: str) -> list[str]:
         ref = self.imports_by_file.get(current_file, {}).get(imported_name)
         if not ref or ref.kind != "symbol" or not ref.module:
-            return None
+            return []
         file_path = self.module_to_file.get(ref.module)
         if not file_path:
-            return None
-        candidates = [
+            return []
+        return [
             symbol.symbol_id
             for symbol in self.symbols_by_file.get(file_path, [])
             if symbol.name == ref.name and symbol.symbol_type in {"function", "class"}
         ]
-        return candidates[0] if len(candidates) == 1 else None
 
     def resolve_module_alias(self, current_file: str, alias: str) -> str | None:
         return self.module_aliases_by_file.get(current_file, {}).get(alias)
 
     def resolve_top_level(self, name: str) -> str | None:
-        candidates = self.top_level_by_name.get(name, [])
+        candidates = self.resolve_top_level_candidates(name)
         return candidates[0] if len(candidates) == 1 else None
+
+    def resolve_top_level_candidates(self, name: str) -> list[str]:
+        return list(self.top_level_by_name.get(name, []))
+
+    def resolve_module_function_candidates(self, module_name: str, function_name: str) -> list[str]:
+        module_file = self.module_to_file.get(module_name)
+        if not module_file:
+            return []
+        return [
+            symbol.symbol_id
+            for symbol in self.symbols_for_file(module_file)
+            if symbol.name == function_name and symbol.symbol_type == "function"
+        ]
 
     def resolve_method(self, class_symbol_id: str, method_name: str) -> str | None:
         return self.methods_by_class.get(class_symbol_id, {}).get(method_name)
@@ -167,3 +186,42 @@ class SymbolIndex:
         if imported_module:
             base_parts.extend(imported_module.split("."))
         return ".".join(part for part in base_parts if part)
+
+    def resolve_factory_return_type(self, symbol_id: str) -> str | None:
+        return self.factory_return_types.get(symbol_id)
+
+    def _infer_factory_return_type(self, node: ast.FunctionDef, rel_path: str) -> str | None:
+        if len(node.body) != 1 or not isinstance(node.body[0], ast.Return):
+            return None
+        return_value = node.body[0].value
+        if not isinstance(return_value, ast.Call):
+            return None
+        constructor = return_value.func
+        if isinstance(constructor, ast.Name):
+            local_class = next(
+                (
+                    symbol.symbol_id
+                    for symbol in self.symbols_by_file.get(rel_path, [])
+                    if symbol.symbol_type == "class" and symbol.name == constructor.id
+                ),
+                None,
+            )
+            if local_class:
+                return local_class
+            imported_class = self.resolve_imported_symbol(rel_path, constructor.id)
+            if imported_class and self.get_symbol(imported_class).symbol_type == "class":
+                return imported_class
+        return None
+
+    def _scan_factory_returns(self, path: Path) -> None:
+        source = path.read_text(encoding="utf-8")
+        rel_path = self.rel_path(path)
+        tree = ast.parse(source, filename=str(path))
+        for node in tree.body:
+            if not isinstance(node, ast.FunctionDef):
+                continue
+            returned_class = self._infer_factory_return_type(node, rel_path)
+            if not returned_class:
+                continue
+            symbol_id = f"{rel_path}::{node.name}"
+            self.factory_return_types[symbol_id] = returned_class

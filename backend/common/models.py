@@ -32,6 +32,21 @@ class CallEdge:
     confidence: str
     resolved: bool
     cross_file: bool
+    status: str
+    reason: str
+    candidate_symbol_ids: list[str]
+
+    def to_dict(self) -> dict[str, Any]:
+        return asdict(self)
+
+
+@dataclass(frozen=True)
+class AdvisorySuggestion:
+    edge_status: str
+    call_expr: str
+    reason: str
+    summary: str
+    candidate_symbol_ids: list[str]
 
     def to_dict(self) -> dict[str, Any]:
         return asdict(self)
@@ -53,6 +68,9 @@ class NodeDetail:
     symbol: Symbol
     callers: list[str]
     callees: list[str]
+    inbound_edges: list[CallEdge]
+    outbound_edges: list[CallEdge]
+    advisory_suggestions: list[AdvisorySuggestion]
     insight: NodeInsight | None = None
 
     def to_dict(self) -> dict[str, Any]:
@@ -60,6 +78,9 @@ class NodeDetail:
             "symbol": self.symbol.to_dict(),
             "callers": self.callers,
             "callees": self.callees,
+            "inbound_edges": [edge.to_dict() for edge in self.inbound_edges],
+            "outbound_edges": [edge.to_dict() for edge in self.outbound_edges],
+            "advisory_suggestions": [item.to_dict() for item in self.advisory_suggestions],
             "insight": self.insight.to_dict() if self.insight else None,
         }
         return payload

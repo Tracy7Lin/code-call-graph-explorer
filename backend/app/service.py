@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from backend.analyzer.file_analyzer import analyze_file
-from backend.common.models import FileGraph, FileGraphDelta, NodeDetail, NodeInsight, Symbol
+from backend.common.models import AdvisorySuggestion, FileGraph, FileGraphDelta, NodeDetail, NodeInsight, Symbol
 from backend.indexer.symbol_index import SymbolIndex
 
 
@@ -26,10 +26,21 @@ class ExplorerService:
     def get_node_detail(self, symbol_id: str, with_llm: bool) -> NodeDetail:
         symbol = self.symbol_index.get_symbol(symbol_id)
         graph = self.analyze_file(self.repo_root / symbol.file_path)
-        callers = [edge.caller_id for edge in graph.edges if edge.callee_id == symbol_id]
-        callees = [edge.callee_id for edge in graph.edges if edge.caller_id == symbol_id]
+        inbound_edges = [edge for edge in graph.edges if edge.callee_id == symbol_id]
+        outbound_edges = [edge for edge in graph.edges if edge.caller_id == symbol_id]
+        callers = [edge.caller_id for edge in inbound_edges]
+        callees = [edge.callee_id for edge in outbound_edges]
         insight = self._build_insight(symbol, callees) if with_llm else None
-        return NodeDetail(symbol=symbol, callers=callers, callees=callees, insight=insight)
+        advisory_suggestions = self._build_advisory_suggestions(outbound_edges) if with_llm else []
+        return NodeDetail(
+            symbol=symbol,
+            callers=callers,
+            callees=callees,
+            inbound_edges=inbound_edges,
+            outbound_edges=outbound_edges,
+            advisory_suggestions=advisory_suggestions,
+            insight=insight,
+        )
 
     def expand_node(self, symbol_id: str) -> FileGraphDelta:
         symbol = self.symbol_index.get_symbol(symbol_id)
@@ -61,3 +72,24 @@ class ExplorerService:
             side_effects=side_effects,
             suggested_next_nodes=suggested,
         )
+
+    def _build_advisory_suggestions(self, outbound_edges: list) -> list[AdvisorySuggestion]:
+        suggestions: list[AdvisorySuggestion] = []
+        for edge in outbound_edges:
+            if edge.status not in {"unresolved", "ambiguous"}:
+                continue
+            summary = (
+                f"Static analysis could not confirm `{edge.call_expr}` because `{edge.reason}`."
+                if edge.status == "unresolved"
+                else f"`{edge.call_expr}` has multiple plausible targets under static analysis."
+            )
+            suggestions.append(
+                AdvisorySuggestion(
+                    edge_status=edge.status,
+                    call_expr=edge.call_expr,
+                    reason=edge.reason,
+                    summary=summary,
+                    candidate_symbol_ids=edge.candidate_symbol_ids,
+                )
+            )
+        return suggestions
