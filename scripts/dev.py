@@ -20,6 +20,10 @@ def cmd_test() -> int:
     return run_command([sys.executable, "-m", "unittest", "discover", "-s", "tests", "-v"])
 
 
+def cmd_quality() -> int:
+    return cmd_test()
+
+
 def cmd_serve_sample() -> int:
     return run_command(
         [
@@ -36,6 +40,7 @@ def cmd_serve_sample() -> int:
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Developer helpers for the Python Call Graph Explorer.")
     subparsers = parser.add_subparsers(dest="command", required=True)
+    subparsers.add_parser("quality", help="Run the required local quality gate.")
     subparsers.add_parser("test", help="Run the full unit test suite.")
     subparsers.add_parser("serve-sample", help="Run the local app against the bundled sample repository.")
     return parser
@@ -44,6 +49,8 @@ def build_parser() -> argparse.ArgumentParser:
 def main() -> int:
     parser = build_parser()
     args = parser.parse_args()
+    if args.command == "quality":
+        return cmd_quality()
     if args.command == "test":
         return cmd_test()
     if args.command == "serve-sample":

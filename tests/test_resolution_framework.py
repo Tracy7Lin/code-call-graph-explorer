@@ -4,7 +4,27 @@ from backend.analyzer.framework import (
     build_default_assignment_rules,
     build_default_call_rules,
 )
+from backend.analyzer.rules_assignment_inference import (
+    infer_constructor_assignment,
+    infer_factory_assignment,
+)
+from backend.analyzer.rules_attribute_calls import (
+    resolve_class_method,
+    resolve_instance_method,
+    resolve_module_alias_function,
+    resolve_module_function,
+    resolve_self_method,
+)
+from backend.analyzer.rules_name_calls import (
+    resolve_ambiguous_import,
+    resolve_constructor_call,
+    resolve_imported_function,
+    resolve_local_function,
+    resolve_top_level,
+)
 from backend.analyzer.types import ResolutionReason, ResolutionStatus
+from backend.core.semantics import SharedResolutionReason, SharedResolutionStatus
+from backend.languages.python import PythonLanguageAdapter
 
 
 class ResolutionFrameworkTests(unittest.TestCase):
@@ -13,6 +33,8 @@ class ResolutionFrameworkTests(unittest.TestCase):
         self.assertEqual(ResolutionStatus.AMBIGUOUS, "ambiguous")
         self.assertEqual(ResolutionReason.CONSTRUCTOR_CALL, "constructor_call")
         self.assertEqual(ResolutionReason.INSTANCE_METHOD, "instance_method")
+        self.assertEqual(SharedResolutionStatus.RESOLVED, "resolved")
+        self.assertEqual(SharedResolutionReason.CONSTRUCTOR_CALL, "constructor_call")
 
     def test_default_call_rules_are_registered_in_explicit_order(self) -> None:
         rule_names = [rule.name for rule in build_default_call_rules()]
@@ -41,6 +63,40 @@ class ResolutionFrameworkTests(unittest.TestCase):
                 "factory-assignment",
             ],
         )
+
+    def test_default_call_rules_are_loaded_from_rule_family_modules(self) -> None:
+        handlers = [rule.handler for rule in build_default_call_rules()]
+        self.assertEqual(
+            handlers,
+            [
+                resolve_local_function,
+                resolve_constructor_call,
+                resolve_imported_function,
+                resolve_ambiguous_import,
+                resolve_top_level,
+                resolve_self_method,
+                resolve_instance_method,
+                resolve_module_alias_function,
+                resolve_module_function,
+                resolve_class_method,
+            ],
+        )
+
+    def test_default_assignment_rules_are_loaded_from_rule_family_modules(self) -> None:
+        handlers = [rule.handler for rule in build_default_assignment_rules()]
+        self.assertEqual(
+            handlers,
+            [
+                infer_constructor_assignment,
+                infer_factory_assignment,
+            ],
+        )
+
+    def test_python_language_adapter_boundary_exists(self) -> None:
+        adapter = PythonLanguageAdapter()
+        self.assertEqual(adapter.language_id, "python")
+        self.assertTrue(callable(adapter.build_symbol_index))
+        self.assertTrue(callable(adapter.analyze_file))
 
 
 if __name__ == "__main__":

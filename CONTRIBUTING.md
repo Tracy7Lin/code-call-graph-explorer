@@ -12,13 +12,14 @@
 1. Create a focused branch for a single change.
 2. Write or update a failing test first when behavior changes.
 3. Make the smallest code change that turns the test green.
-4. Run the full test suite before asking for review.
+4. Run `python scripts/dev.py quality` before asking for review.
 5. Update `CHANGELOG.md` if behavior, developer workflow, or repository structure changed.
 
 ## Useful Commands
 
 ```bash
 python -m unittest discover -s tests -v
+python scripts/dev.py quality
 python run.py --repo-root fixtures/sample_repo --target-file fixtures/sample_repo/pkg/main.py
 python scripts/dev.py test
 python scripts/dev.py serve-sample

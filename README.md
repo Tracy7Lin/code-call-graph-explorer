@@ -33,11 +33,13 @@ Then open [http://127.0.0.1:8000](http://127.0.0.1:8000).
 
 ```bash
 python -m unittest discover -s tests -v
+python scripts/dev.py quality
 ```
 
 ## Developer Commands
 
 - Run tests: `python -m unittest discover -s tests -v`
+- Run the local quality gate: `python scripts/dev.py quality`
 - Start the app: `python run.py --repo-root fixtures/sample_repo --target-file fixtures/sample_repo/pkg/main.py`
 - Scripted test run: `python scripts/dev.py test`
 - Scripted sample app run: `python scripts/dev.py serve-sample`

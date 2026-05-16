@@ -14,6 +14,7 @@ class RepositoryGovernanceTests(unittest.TestCase):
             "scripts/dev.py",
             "docs/roadmap.md",
             "docs/project-structure.md",
+            ".github/workflows/test.yml",
             ".github/pull_request_template.md",
             ".github/ISSUE_TEMPLATE/bug_report.md",
             ".github/ISSUE_TEMPLATE/feature_request.md",
@@ -32,6 +33,18 @@ class RepositoryGovernanceTests(unittest.TestCase):
         self.assertIn('requires-python = ">=3.11"', contents)
         self.assertIn("python -m unittest discover -s tests -v", contents)
         self.assertIn("python run.py", contents)
+
+    def test_quality_entrypoints_and_ci_are_documented(self) -> None:
+        dev_script = (REPO_ROOT / "scripts" / "dev.py").read_text(encoding="utf-8")
+        workflow = (REPO_ROOT / ".github" / "workflows" / "test.yml").read_text(encoding="utf-8")
+        readme = (REPO_ROOT / "README.md").read_text(encoding="utf-8")
+        contributing = (REPO_ROOT / "CONTRIBUTING.md").read_text(encoding="utf-8")
+
+        self.assertIn('subparsers.add_parser("quality"', dev_script)
+        self.assertIn('if args.command == "quality":', dev_script)
+        self.assertIn("python scripts/dev.py quality", workflow)
+        self.assertIn("python scripts/dev.py quality", readme)
+        self.assertIn("python scripts/dev.py quality", contributing)
 
 
 if __name__ == "__main__":
