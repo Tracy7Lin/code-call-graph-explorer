@@ -28,7 +28,7 @@ Canonical home for Python-specific analysis and indexing code.
 
 ### `backend/app`
 
-Exposes the analyzer through a service layer and the local HTTP server.
+Owns delivery orchestration, including the service layer, the service-to-adapter pipeline, and the local HTTP server.
 
 ### `backend/common`
 

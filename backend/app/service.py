@@ -2,15 +2,15 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from backend.analyzer.file_analyzer import analyze_file
+from backend.app.pipeline import AnalysisPipeline
 from backend.common.models import AdvisorySuggestion, FileGraph, FileGraphDelta, NodeDetail, NodeInsight, Symbol
-from backend.indexer.symbol_index import SymbolIndex
 
 
 class ExplorerService:
     def __init__(self, repo_root: Path) -> None:
         self.repo_root = Path(repo_root).resolve()
-        self.symbol_index = SymbolIndex.build(self.repo_root)
+        self.pipeline = AnalysisPipeline(self.repo_root)
+        self.symbol_index = self.pipeline.symbol_index
         self.graph_cache: dict[str, FileGraph] = {}
 
     def analyze_file(self, target_file: Path) -> FileGraph:
@@ -19,7 +19,7 @@ class ExplorerService:
         cached = self.graph_cache.get(rel_path)
         if cached:
             return cached
-        graph = analyze_file(self.repo_root, target_file, self.symbol_index)
+        graph = self.pipeline.analyze_file(target_file)
         self.graph_cache[rel_path] = graph
         return graph
 

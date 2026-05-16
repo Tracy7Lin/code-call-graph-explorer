@@ -2,6 +2,7 @@ import json
 import unittest
 from pathlib import Path
 
+from backend.app.pipeline import AnalysisPipeline
 from backend.app.service import ExplorerService
 
 
@@ -12,6 +13,12 @@ class ExplorerServiceTests(unittest.TestCase):
     def setUp(self) -> None:
         self.service = ExplorerService(FIXTURE_ROOT)
         self.target_file = FIXTURE_ROOT / "pkg" / "main.py"
+
+    def test_service_uses_analysis_pipeline_boundary(self) -> None:
+        self.assertIsInstance(self.service.pipeline, AnalysisPipeline)
+        self.assertEqual(self.service.pipeline.adapter.language_id, "python")
+        self.assertEqual(self.service.pipeline.__class__.__module__, "backend.app.pipeline")
+        self.assertEqual(self.service.pipeline.adapter.__class__.__module__, "backend.languages.python")
 
     def test_analyze_file_returns_stable_shape(self) -> None:
         payload = self.service.analyze_file(self.target_file).to_dict()
