@@ -1,6 +1,7 @@
 import unittest
 from pathlib import Path
 
+from backend.common.models import FileGraph as CompatFileGraph, Symbol as CompatSymbol
 from backend.analyzer.framework import (
     build_default_assignment_rules,
     build_default_call_rules,
@@ -25,6 +26,7 @@ from backend.analyzer.rules_name_calls import (
 )
 from backend.analyzer.types import ResolutionReason, ResolutionStatus
 from backend.languages import get_adapter, get_default_adapter, list_adapters
+from backend.core.models import FileGraph as CoreFileGraph, Symbol as CoreSymbol
 from backend.core.semantics import SharedResolutionReason, SharedResolutionStatus
 from backend.languages.python import PythonLanguageAdapter
 
@@ -112,6 +114,12 @@ class ResolutionFrameworkTests(unittest.TestCase):
         self.assertIn("python", adapters)
         self.assertIsInstance(get_adapter("python"), PythonLanguageAdapter)
         self.assertIsInstance(get_default_adapter(), PythonLanguageAdapter)
+
+    def test_core_model_path_exists_and_common_models_are_compatibility_exports(self) -> None:
+        repo_root = Path(__file__).resolve().parents[1]
+        self.assertTrue((repo_root / "backend" / "core" / "models.py").exists())
+        self.assertIs(CoreSymbol, CompatSymbol)
+        self.assertIs(CoreFileGraph, CompatFileGraph)
 
 
 if __name__ == "__main__":

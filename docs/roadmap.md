@@ -31,6 +31,9 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 - Language adapter framework requirements: `docs/2026-05-16-language-adapter-framework-requirements.md`
 - Language adapter framework design: `docs/2026-05-16-language-adapter-framework-design.md`
 - Language adapter framework plan: `docs/superpowers/plans/2026-05-16-language-adapter-framework.md`
+- Core model migration requirements: `docs/2026-05-16-core-model-migration-requirements.md`
+- Core model migration design: `docs/2026-05-16-core-model-migration-design.md`
+- Core model migration plan: `docs/superpowers/plans/2026-05-16-core-model-migration.md`
 
 ## Later Work
 

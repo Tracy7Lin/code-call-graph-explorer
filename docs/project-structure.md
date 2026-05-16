@@ -20,7 +20,11 @@ Transitional compatibility layer for older imports. New Python indexer implement
 
 ### `backend/core`
 
-Holds shared semantics that should remain language-agnostic.
+Holds shared semantics and canonical shared graph-facing models that should remain language-agnostic.
+
+### `backend/common`
+
+Transitional compatibility layer for older shared-model imports.
 
 ### `backend/languages`
 
@@ -33,10 +37,6 @@ Canonical home for Python-specific analysis and indexing code.
 ### `backend/app`
 
 Owns delivery orchestration, including the service layer, the service-to-adapter pipeline, and the local HTTP server.
-
-### `backend/common`
-
-Holds shared dataclasses and API-facing models until a later core-model migration.
 
 ## Frontend Responsibilities
 

@@ -30,7 +30,7 @@ python scripts/dev.py serve-sample
 - `backend/languages/python` is the canonical home for Python-specific analyzer and indexer code.
 - `backend/analyzer` and `backend/indexer` are transitional compatibility layers and should not become the main place for new Python logic.
 - `backend/app` owns service orchestration and HTTP serving.
-- `backend/core` owns shared semantics that should stay language-agnostic.
+- `backend/core` owns shared semantics and shared graph-facing models that should stay language-agnostic.
 - `frontend` stays dependency-light and consumes the backend API surface directly.
 - `fixtures` contains deterministic sample repositories for tests and demos.
 
