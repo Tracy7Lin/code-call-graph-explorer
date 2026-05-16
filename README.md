@@ -1,0 +1,50 @@
+# Python Code Call Graph Explorer
+
+A local web app for understanding unfamiliar Python files through a focused call graph, symbol details, and optional LLM-style explanations.
+
+## Status
+
+This repository is at the first working milestone:
+
+- Python-only static analysis
+- file-centered graph exploration
+- local browser UI
+- optional lightweight node insight
+
+Planned work is tracked in [docs/roadmap.md](docs/roadmap.md).
+
+## Features
+
+- Analyze a target Python file inside a repository
+- Build a file-centered call graph with explicit unresolved calls
+- Jump to cross-file definitions through a lightweight repository index
+- Inspect symbol signatures, source snippets, docstrings, and static facts
+- Serve a zero-dependency browser UI from the local Python backend
+
+## Quick Start
+
+```bash
+python run.py --repo-root fixtures/sample_repo --target-file fixtures/sample_repo/pkg/main.py
+```
+
+Then open [http://127.0.0.1:8000](http://127.0.0.1:8000).
+
+## Test
+
+```bash
+python -m unittest discover -s tests -v
+```
+
+## Developer Commands
+
+- Run tests: `python -m unittest discover -s tests -v`
+- Start the app: `python run.py --repo-root fixtures/sample_repo --target-file fixtures/sample_repo/pkg/main.py`
+- Scripted test run: `python scripts/dev.py test`
+- Scripted sample app run: `python scripts/dev.py serve-sample`
+
+## Project Docs
+
+- Contribution guide: [CONTRIBUTING.md](CONTRIBUTING.md)
+- Change log: [CHANGELOG.md](CHANGELOG.md)
+- Structure notes: [docs/project-structure.md](docs/project-structure.md)
+- Roadmap: [docs/roadmap.md](docs/roadmap.md)

@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Python Call Graph Explorer</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <main class="layout">
+      <section class="panel controls">
+        <h1>Python Call Graph Explorer</h1>
+        <form id="analyze-form">
+          <label>
+            Repo root
+            <input id="repo-root" name="repo_root" type="text" required />
+          </label>
+          <label>
+            Target file
+            <input id="target-file" name="target_file" type="text" required />
+          </label>
+          <button type="submit">Analyze file</button>
+        </form>
+        <p class="hint">Unresolved nodes stay visible in red so the graph does not pretend certainty.</p>
+      </section>
+      <section class="panel graph-panel">
+        <div class="toolbar">
+          <span id="graph-title">No graph loaded</span>
+        </div>
+        <svg id="graph" viewBox="0 0 1200 720" aria-label="Call graph"></svg>
+      </section>
+      <aside class="panel detail-panel">
+        <div class="detail-actions">
+          <label><input id="with-llm" type="checkbox" /> Include insight</label>
+          <div class="detail-buttons">
+            <button id="jump-node" type="button" disabled>Jump to definition</button>
+            <button id="expand-node" type="button" disabled>Expand node</button>
+          </div>
+        </div>
+        <div id="detail-empty">Select a node to inspect details.</div>
+        <div id="detail-content" hidden></div>
+      </aside>
+    </main>
+    <script src="/app.js"></script>
+  </body>
+</html>
