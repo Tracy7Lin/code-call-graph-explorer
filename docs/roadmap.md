@@ -34,6 +34,9 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 - Core model migration requirements: `docs/2026-05-16-core-model-migration-requirements.md`
 - Core model migration design: `docs/2026-05-16-core-model-migration-design.md`
 - Core model migration plan: `docs/superpowers/plans/2026-05-16-core-model-migration.md`
+- Core model direct-import requirements: `docs/2026-05-17-core-model-direct-import-requirements.md`
+- Core model direct-import design: `docs/2026-05-17-core-model-direct-import-design.md`
+- Core model direct-import plan: `docs/superpowers/plans/2026-05-17-core-model-direct-import.md`
 
 ## Later Work
 

@@ -4,7 +4,7 @@ import ast
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from backend.common.models import Symbol
+from backend.core.models import Symbol
 
 
 @dataclass(frozen=True)

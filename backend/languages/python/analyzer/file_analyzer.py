@@ -3,7 +3,7 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
-from backend.common.models import CallEdge, FileGraph, Symbol
+from backend.core.models import CallEdge, FileGraph, Symbol
 from backend.languages.python.analyzer.collector import CallCollector
 from backend.languages.python.indexer.symbol_index import SymbolIndex
 

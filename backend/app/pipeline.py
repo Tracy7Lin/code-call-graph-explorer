@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from backend.common.models import FileGraph
+from backend.core.models import FileGraph
 from backend.languages import get_adapter, get_default_adapter
 from backend.languages.python.indexer.symbol_index import SymbolIndex
 from backend.languages.types import LanguageAdapter

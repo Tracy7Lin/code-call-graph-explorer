@@ -21,6 +21,7 @@ Transitional compatibility layer for older imports. New Python indexer implement
 ### `backend/core`
 
 Holds shared semantics and canonical shared graph-facing models that should remain language-agnostic.
+Active runtime imports for shared graph/detail/advisory models should point to `backend.core.models`.
 
 ### `backend/common`
 

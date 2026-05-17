@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
-from backend.common.models import FileGraph
+from backend.core.models import FileGraph
 
 
 @runtime_checkable

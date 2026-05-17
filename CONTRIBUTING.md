@@ -34,6 +34,11 @@ python scripts/dev.py serve-sample
 - `frontend` stays dependency-light and consumes the backend API surface directly.
 - `fixtures` contains deterministic sample repositories for tests and demos.
 
+## Import Expectations
+
+- New runtime code should import shared graph/detail/advisory models from `backend.core.models`.
+- `backend.common.models` is compatibility-only and should not be the default choice for new runtime imports.
+
 ## Migration Notes
 
 - When extending Python analysis behavior, prefer `backend/languages/python/analyzer`.

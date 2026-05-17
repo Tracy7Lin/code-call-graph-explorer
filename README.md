@@ -31,6 +31,8 @@ The repository is now moving toward a real `core + language adapters` structure:
 - `backend/app/pipeline.py` owns service-to-adapter execution wiring
 - `backend/analyzer`, `backend/indexer`, and `backend/common` remain as transitional compatibility layers during migration
 
+For active runtime code, shared graph/detail/advisory models should now be imported from `backend.core.models`.
+
 Framework and migration guidance live in:
 
 - [docs/2026-05-16-global-framework-design.md](docs/2026-05-16-global-framework-design.md)
@@ -38,6 +40,7 @@ Framework and migration guidance live in:
 - [docs/2026-05-16-service-pipeline-design.md](docs/2026-05-16-service-pipeline-design.md)
 - [docs/2026-05-16-language-adapter-framework-design.md](docs/2026-05-16-language-adapter-framework-design.md)
 - [docs/2026-05-16-core-model-migration-design.md](docs/2026-05-16-core-model-migration-design.md)
+- [docs/2026-05-17-core-model-direct-import-design.md](docs/2026-05-17-core-model-direct-import-design.md)
 
 ## Quick Start
 
@@ -76,3 +79,5 @@ python scripts/dev.py quality
 - Language adapter framework design: [docs/2026-05-16-language-adapter-framework-design.md](docs/2026-05-16-language-adapter-framework-design.md)
 - Core model migration requirements: [docs/2026-05-16-core-model-migration-requirements.md](docs/2026-05-16-core-model-migration-requirements.md)
 - Core model migration design: [docs/2026-05-16-core-model-migration-design.md](docs/2026-05-16-core-model-migration-design.md)
+- Core model direct-import requirements: [docs/2026-05-17-core-model-direct-import-requirements.md](docs/2026-05-17-core-model-direct-import-requirements.md)
+- Core model direct-import design: [docs/2026-05-17-core-model-direct-import-design.md](docs/2026-05-17-core-model-direct-import-design.md)

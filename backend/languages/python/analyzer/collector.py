@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import ast
 
-from backend.common.models import CallEdge
+from backend.core.models import CallEdge
 from backend.languages.python.analyzer.resolution import CallResolver, Resolution, render_expr
 from backend.languages.python.indexer.symbol_index import SymbolIndex
 

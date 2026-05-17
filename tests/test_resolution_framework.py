@@ -121,6 +121,22 @@ class ResolutionFrameworkTests(unittest.TestCase):
         self.assertIs(CoreSymbol, CompatSymbol)
         self.assertIs(CoreFileGraph, CompatFileGraph)
 
+    def test_runtime_modules_import_models_from_core(self) -> None:
+        repo_root = Path(__file__).resolve().parents[1]
+        runtime_paths = [
+            repo_root / "backend" / "app" / "pipeline.py",
+            repo_root / "backend" / "app" / "service.py",
+            repo_root / "backend" / "languages" / "types.py",
+            repo_root / "backend" / "languages" / "python" / "analyzer" / "collector.py",
+            repo_root / "backend" / "languages" / "python" / "analyzer" / "file_analyzer.py",
+            repo_root / "backend" / "languages" / "python" / "indexer" / "symbol_index.py",
+        ]
+
+        for path in runtime_paths:
+            contents = path.read_text(encoding="utf-8")
+            self.assertIn("backend.core.models", contents, str(path))
+            self.assertNotIn("backend.common.models", contents, str(path))
+
 
 if __name__ == "__main__":
     unittest.main()

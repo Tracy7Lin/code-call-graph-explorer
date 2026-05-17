@@ -3,7 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 from backend.app.pipeline import AnalysisPipeline
-from backend.common.models import AdvisorySuggestion, FileGraph, FileGraphDelta, NodeDetail, NodeInsight, Symbol
+from backend.core.models import AdvisorySuggestion, FileGraph, FileGraphDelta, NodeDetail, NodeInsight, Symbol
 
 
 class ExplorerService:
