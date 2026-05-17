@@ -12,7 +12,7 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 ## Near-Term Priorities
 
 1. Expand realistic fixture repositories and improve trustworthy Python call-resolution coverage.
-2. Add better graph layout and more legible edge grouping in the UI.
+2. Add graph search, pinning, and other large-file navigation helpers on top of the new readable UI baseline.
 3. Introduce richer node insight generation with configurable LLM providers.
 4. Repository-wide pre-indexing and caching for larger codebases.
 5. Additional language support after the Python flow is stable.
@@ -40,6 +40,9 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 - Iteration 2 requirements: `docs/2026-05-17-iteration-2-requirements.md`
 - Iteration 2 design: `docs/2026-05-17-iteration-2-design.md`
 - Iteration 2 plan: `docs/superpowers/plans/2026-05-17-iteration-2-accuracy-and-fixtures.md`
+- Frontend readability requirements: `docs/2026-05-17-frontend-readability-requirements.md`
+- Frontend readability design: `docs/2026-05-17-frontend-readability-design.md`
+- Frontend readability plan: `docs/superpowers/plans/2026-05-17-frontend-readability-and-zh.md`
 
 ## Later Work
 

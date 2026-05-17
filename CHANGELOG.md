@@ -10,12 +10,14 @@ All notable changes to this repository will be documented in this file.
 - Advisory suggestion payloads for unresolved and ambiguous calls
 - Accuracy-improvement design and execution documents
 - Realistic `service_case` fixture covering package-style service orchestration flows
+- Frontend readability planning documents for the Chinese-first UI iteration
 
 ### Changed
 
 - Improved Python resolution for module alias function calls
 - Distinct ambiguous vs unresolved rendering in the browser UI
 - Improved Python resolution for module-alias class construction and follow-on service instance calls
+- Reworked the browser UI into a Chinese-first reading workflow with overview metrics, reading anchors, low-noise filters, and a lane-based layout for larger single-file graphs
 
 ## [0.1.0] - 2026-05-16
 

@@ -1,48 +1,103 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-CN">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Python Call Graph Explorer</title>
+    <title>代码调用图阅读器</title>
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
     <main class="layout">
       <section class="panel controls">
-        <h1>Python Call Graph Explorer</h1>
+        <div class="hero">
+          <p class="eyebrow">代码阅读原型</p>
+          <h1>代码调用图阅读器</h1>
+          <p class="hint">
+            先把主干看清，再看支线。已确认、歧义、未解析三种状态会明确区分，不伪装成“都懂了”。
+          </p>
+        </div>
         <form id="analyze-form">
           <label>
-            Repo root
+            仓库根目录
             <input id="repo-root" name="repo_root" type="text" required />
           </label>
           <label>
-            Target file
+            目标文件
             <input id="target-file" name="target_file" type="text" required />
           </label>
-          <button type="submit">Analyze file</button>
+          <button type="submit">分析文件</button>
         </form>
-        <p class="hint">Confirmed edges stay solid. Unresolved and ambiguous paths stay visually separate so the graph does not pretend certainty.</p>
-        <div class="legend">
-          <span class="legend-chip resolved">Resolved</span>
-          <span class="legend-chip ambiguous">Ambiguous</span>
-          <span class="legend-chip unresolved">Unresolved</span>
-        </div>
+
+        <section class="overview-card">
+          <div class="overview-heading">
+            <h2>阅读概览</h2>
+            <span id="overview-file" class="overview-file">尚未加载</span>
+          </div>
+          <div class="overview-metrics">
+            <div class="metric">
+              <span class="metric-label">节点</span>
+              <strong id="metric-nodes">0</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">调用边</span>
+              <strong id="metric-edges">0</strong>
+            </div>
+            <div class="metric">
+              <span class="metric-label">未解析</span>
+              <strong id="metric-unresolved">0</strong>
+            </div>
+          </div>
+          <div class="reading-anchors">
+            <div class="section-title">建议先读</div>
+            <div id="reading-anchors" class="anchor-list">
+              <span class="anchor-empty">分析后会在这里给出优先节点。</span>
+            </div>
+          </div>
+          <p id="overview-note" class="overview-note">
+            当前还没有图谱。载入后会给出建议阅读顺序和大文件模式提示。
+          </p>
+        </section>
+
+        <section class="view-controls">
+          <div class="section-title">视图过滤</div>
+          <div class="toggle-group">
+            <button class="filter-chip active" data-filter="all" type="button">全部</button>
+            <button class="filter-chip" data-filter="focus" type="button">主干优先</button>
+            <button class="filter-chip" data-filter="confirmed" type="button">仅看已确认</button>
+          </div>
+          <div class="legend">
+            <span class="legend-chip resolved">已确认</span>
+            <span class="legend-chip ambiguous">存在歧义</span>
+            <span class="legend-chip unresolved">未解析</span>
+          </div>
+        </section>
       </section>
+
       <section class="panel graph-panel">
         <div class="toolbar">
-          <span id="graph-title">No graph loaded</span>
-        </div>
-        <svg id="graph" viewBox="0 0 1200 720" aria-label="Call graph"></svg>
-      </section>
-      <aside class="panel detail-panel">
-        <div class="detail-actions">
-          <label><input id="with-llm" type="checkbox" /> Include insight</label>
-          <div class="detail-buttons">
-            <button id="jump-node" type="button" disabled>Jump to definition</button>
-            <button id="expand-node" type="button" disabled>Expand node</button>
+          <div>
+            <div class="section-title">图谱视图</div>
+            <span id="graph-title">尚未加载调用图</span>
+          </div>
+          <div class="toolbar-meta">
+            <div id="graph-summary" class="graph-summary">当前还没有可阅读的节点摘要。</div>
+            <div id="graph-mode-hint" class="graph-mode-hint">加载后会根据节点数量自动切换阅读布局。</div>
           </div>
         </div>
-        <div id="detail-empty">Select a node to inspect details.</div>
+        <div class="graph-canvas-shell">
+          <svg id="graph" viewBox="0 0 1280 820" aria-label="调用图"></svg>
+        </div>
+      </section>
+
+      <aside class="panel detail-panel">
+        <div class="detail-actions">
+          <label class="checkbox-row"><input id="with-llm" type="checkbox" /> 显示 insight</label>
+          <div class="detail-buttons">
+            <button id="jump-node" type="button" disabled>跳转到定义</button>
+            <button id="expand-node" type="button" disabled>展开节点</button>
+          </div>
+        </div>
+        <div id="detail-empty">选择一个节点后，这里会展示它的职责、上下游、依据和源码片段。</div>
         <div id="detail-content" hidden></div>
       </aside>
     </main>
