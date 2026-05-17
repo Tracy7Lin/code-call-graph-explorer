@@ -64,11 +64,32 @@
             <button class="filter-chip active" data-filter="all" type="button">全部</button>
             <button class="filter-chip" data-filter="focus" type="button">主干优先</button>
             <button class="filter-chip" data-filter="confirmed" type="button">仅看已确认</button>
+            <button class="filter-chip" data-filter="local" type="button">局部聚焦</button>
           </div>
           <div class="legend">
             <span class="legend-chip resolved">已确认</span>
             <span class="legend-chip ambiguous">存在歧义</span>
             <span class="legend-chip unresolved">未解析</span>
+          </div>
+        </section>
+
+        <section class="navigation-card">
+          <div class="section-title">图内定位</div>
+          <label class="search-field">
+            节点搜索
+            <input id="graph-search" type="text" placeholder="输入函数名、方法名或 qualified name" />
+          </label>
+          <p id="search-summary" class="navigation-note">输入后会高亮匹配节点，并在这里给出快捷结果。</p>
+          <div id="search-results" class="anchor-list">
+            <span class="anchor-empty">还没有搜索结果。</span>
+          </div>
+        </section>
+
+        <section class="navigation-card">
+          <div class="section-title">固定关注节点</div>
+          <p id="pin-summary" class="navigation-note">固定主干节点后，可以配合“局部聚焦”缩小阅读范围。</p>
+          <div id="pinned-nodes" class="anchor-list">
+            <span class="anchor-empty">还没有固定节点。</span>
           </div>
         </section>
       </section>
@@ -93,6 +114,7 @@
         <div class="detail-actions">
           <label class="checkbox-row"><input id="with-llm" type="checkbox" /> 显示 insight</label>
           <div class="detail-buttons">
+            <button id="pin-node" type="button" disabled>固定节点</button>
             <button id="jump-node" type="button" disabled>跳转到定义</button>
             <button id="expand-node" type="button" disabled>展开节点</button>
           </div>

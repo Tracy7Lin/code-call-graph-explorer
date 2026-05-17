@@ -8,18 +8,25 @@ const detailContent = document.getElementById("detail-content");
 const llmCheckbox = document.getElementById("with-llm");
 const expandButton = document.getElementById("expand-node");
 const jumpButton = document.getElementById("jump-node");
+const pinButton = document.getElementById("pin-node");
 const overviewFile = document.getElementById("overview-file");
 const overviewNote = document.getElementById("overview-note");
 const metricNodes = document.getElementById("metric-nodes");
 const metricEdges = document.getElementById("metric-edges");
 const metricUnresolved = document.getElementById("metric-unresolved");
 const readingAnchors = document.getElementById("reading-anchors");
+const graphSearch = document.getElementById("graph-search");
+const searchSummary = document.getElementById("search-summary");
+const searchResults = document.getElementById("search-results");
+const pinnedNodes = document.getElementById("pinned-nodes");
+const pinSummary = document.getElementById("pin-summary");
 const filterChips = Array.from(document.querySelectorAll(".filter-chip"));
 
 const FILTER_LABELS = {
   all: "全部节点",
   focus: "主干优先",
   confirmed: "仅看已确认",
+  local: "局部聚焦",
 };
 
 const STATUS_LABELS = {
@@ -30,17 +37,26 @@ const STATUS_LABELS = {
 
 const UI_COPY = {
   emptyAnchors: "分析后会在这里给出优先节点。",
-  emptyGraphTitle: "当前过滤条件下没有可显示的节点",
-  emptyGraphSubtitle: "可以切回“全部”或“主干优先”，再继续阅读。",
+  emptySearch: "还没有搜索结果。",
+  emptyPins: "还没有固定节点。",
+  emptyGraphTitle: "当前条件下没有可显示的节点",
+  emptyGraphSubtitle: "可以切回“全部”，或先选择/固定一个节点，再使用局部聚焦。",
 };
 
-let currentGraph = null;
-let selectedNodeId = null;
-let selectedSymbol = null;
-let currentFilter = "all";
+const uiState = {
+  currentGraph: null,
+  selectedNodeId: null,
+  selectedSymbol: null,
+  currentFilter: "all",
+  searchQuery: "",
+  pinnedNodeIds: new Set(),
+};
 
 hydrateInputsFromQuery();
 bindEvents();
+syncFilterChips();
+renderSearchResults([]);
+renderPinnedNodes();
 
 function hydrateInputsFromQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -55,17 +71,21 @@ function hydrateInputsFromQuery() {
 function bindEvents() {
   filterChips.forEach((chip) => {
     chip.addEventListener("click", () => {
-      currentFilter = chip.dataset.filter;
+      uiState.currentFilter = chip.dataset.filter;
       syncFilterChips();
-      if (currentGraph) {
-        refreshCurrentGraph();
-      }
+      refreshCurrentGraph();
     });
+  });
+
+  graphSearch.addEventListener("input", () => {
+    uiState.searchQuery = graphSearch.value.trim();
+    refreshCurrentGraph();
   });
 
   form.addEventListener("submit", handleAnalyzeSubmit);
   expandButton.addEventListener("click", handleExpandNode);
   jumpButton.addEventListener("click", handleJumpToDefinition);
+  pinButton.addEventListener("click", handleTogglePinSelection);
 }
 
 async function handleAnalyzeSubmit(event) {
@@ -75,66 +95,94 @@ async function handleAnalyzeSubmit(event) {
   const search = new URLSearchParams({ repo_root: repoRoot, target_file: targetFile });
   window.history.replaceState({}, "", `/?${search.toString()}`);
   const response = await fetch(`/api/graph?${search.toString()}`);
-  currentGraph = await response.json();
-  selectedNodeId = null;
-  selectedSymbol = null;
-  graphTitle.textContent = currentGraph.center_file;
+  uiState.currentGraph = await response.json();
+  uiState.selectedNodeId = null;
+  uiState.selectedSymbol = null;
+  uiState.pinnedNodeIds.clear();
+  graphTitle.textContent = uiState.currentGraph.center_file;
   showEmpty();
   refreshCurrentGraph();
 }
 
 async function handleExpandNode() {
-  if (!selectedNodeId) return;
-  const response = await fetch(`/api/expand?symbol_id=${encodeURIComponent(selectedNodeId)}`);
+  if (!uiState.selectedNodeId) return;
+  const response = await fetch(`/api/expand?symbol_id=${encodeURIComponent(uiState.selectedNodeId)}`);
   const delta = await response.json();
   mergeGraph(delta);
   refreshCurrentGraph();
 }
 
 async function handleJumpToDefinition() {
-  if (!selectedSymbol || isSyntheticNode(selectedSymbol)) return;
+  if (!uiState.selectedSymbol || isSyntheticNode(uiState.selectedSymbol)) return;
   const repoRoot = document.getElementById("repo-root").value.replace(/[\\/]+$/, "");
-  document.getElementById("target-file").value = `${repoRoot}/${selectedSymbol.file_path}`;
+  document.getElementById("target-file").value = `${repoRoot}/${uiState.selectedSymbol.file_path}`;
   form.requestSubmit();
 }
 
+function handleTogglePinSelection() {
+  if (!uiState.selectedSymbol || isSyntheticNode(uiState.selectedSymbol)) return;
+  togglePinnedNode(uiState.selectedSymbol.symbol_id);
+}
+
 function refreshCurrentGraph() {
-  if (!currentGraph) return;
-  const view = buildGraphView(currentGraph);
-  updateOverview(currentGraph, view);
-  updateGraphMeta(currentGraph, view);
-  renderGraph(currentGraph, view);
+  if (!uiState.currentGraph) {
+    updateSearchSummary([]);
+    renderSearchResults([]);
+    renderPinnedNodes();
+    return;
+  }
+
+  const view = buildGraphView(uiState.currentGraph);
+  updateOverview(uiState.currentGraph, view);
+  updateGraphMeta(uiState.currentGraph, view);
+  updateSearchSummary(view.searchMatches);
+  renderSearchResults(view.searchMatches);
+  renderPinnedNodes();
+  syncPinButton();
+  renderGraph(view);
 }
 
 function syncFilterChips() {
-  filterChips.forEach((item) => item.classList.toggle("active", item.dataset.filter === currentFilter));
+  filterChips.forEach((chip) => {
+    const isActive = chip.dataset.filter === uiState.currentFilter;
+    chip.classList.toggle("active", isActive);
+    chip.classList.toggle("local-active", isActive && chip.dataset.filter === "local");
+  });
+}
+
+function syncPinButton() {
+  const pinable = uiState.selectedSymbol && !isSyntheticNode(uiState.selectedSymbol);
+  pinButton.disabled = !pinable;
+  pinButton.classList.toggle("is-pinned", pinable && uiState.pinnedNodeIds.has(uiState.selectedSymbol.symbol_id));
+  pinButton.textContent = pinable && uiState.pinnedNodeIds.has(uiState.selectedSymbol.symbol_id) ? "取消固定" : "固定节点";
 }
 
 function mergeGraph(delta) {
-  const existingNodeIds = new Set(currentGraph.nodes.map((node) => node.symbol_id));
+  const existingNodeIds = new Set(uiState.currentGraph.nodes.map((node) => node.symbol_id));
   delta.nodes.forEach((node) => {
     if (!existingNodeIds.has(node.symbol_id)) {
-      currentGraph.nodes.push(node);
+      uiState.currentGraph.nodes.push(node);
     }
   });
 
-  const existingEdgeIds = new Set(currentGraph.edges.map((edge) => edge.edge_id));
+  const existingEdgeIds = new Set(uiState.currentGraph.edges.map((edge) => edge.edge_id));
   delta.edges.forEach((edge) => {
     if (!existingEdgeIds.has(edge.edge_id)) {
-      currentGraph.edges.push(edge);
+      uiState.currentGraph.edges.push(edge);
     }
   });
 
-  const unresolvedIds = new Set(currentGraph.unresolved_ids);
+  const unresolvedIds = new Set(uiState.currentGraph.unresolved_ids);
   delta.unresolved_ids.forEach((symbolId) => unresolvedIds.add(symbolId));
-  currentGraph.unresolved_ids = Array.from(unresolvedIds);
+  uiState.currentGraph.unresolved_ids = Array.from(unresolvedIds);
 }
 
 async function selectNode(symbolId) {
-  selectedNodeId = symbolId;
-  selectedSymbol = findNodeById(symbolId);
+  uiState.selectedNodeId = symbolId;
+  uiState.selectedSymbol = findNodeById(symbolId);
   expandButton.disabled = false;
-  jumpButton.disabled = !selectedSymbol || isSyntheticNode(selectedSymbol);
+  jumpButton.disabled = !uiState.selectedSymbol || isSyntheticNode(uiState.selectedSymbol);
+  syncPinButton();
   const withLlm = llmCheckbox.checked ? "1" : "0";
   const response = await fetch(`/api/node?symbol_id=${encodeURIComponent(symbolId)}&with_llm=${withLlm}`);
   const detail = await response.json();
@@ -143,43 +191,110 @@ async function selectNode(symbolId) {
 }
 
 function findNodeById(symbolId) {
-  return currentGraph?.nodes.find((node) => node.symbol_id === symbolId) || null;
+  return uiState.currentGraph?.nodes.find((node) => node.symbol_id === symbolId) || null;
+}
+
+function togglePinnedNode(symbolId) {
+  if (uiState.pinnedNodeIds.has(symbolId)) {
+    uiState.pinnedNodeIds.delete(symbolId);
+  } else {
+    uiState.pinnedNodeIds.add(symbolId);
+  }
+  syncPinButton();
+  refreshCurrentGraph();
 }
 
 function buildGraphView(graph) {
   const centerIds = new Set(graph.center_symbol_ids);
+  const adjacency = buildAdjacency(graph.edges);
   const rankedAllNodes = rankNodes(graph.nodes, graph.edges, centerIds);
   const focusIds = new Set(rankedAllNodes.slice(0, 8).map((node) => node.symbol_id));
   centerIds.forEach((symbolId) => focusIds.add(symbolId));
 
+  const searchMatches = buildSearchMatches(graph.nodes, uiState.searchQuery);
+  const localFocusIds = buildLocalFocusIds(adjacency);
+
   let visibleNodes = graph.nodes.slice();
   let visibleEdges = graph.edges.slice();
 
-  if (currentFilter === "confirmed") {
+  if (uiState.currentFilter === "confirmed") {
     visibleEdges = visibleEdges.filter((edge) => edge.status === "resolved");
     const keepIds = collectConnectedNodeIds(visibleEdges);
     visibleNodes = visibleNodes.filter((node) => keepIds.has(node.symbol_id));
   }
 
-  if (currentFilter === "focus") {
+  if (uiState.currentFilter === "focus") {
     visibleNodes = visibleNodes.filter((node) => focusIds.has(node.symbol_id));
     const keepIds = new Set(visibleNodes.map((node) => node.symbol_id));
     visibleEdges = visibleEdges.filter((edge) => keepIds.has(edge.caller_id) && keepIds.has(edge.callee_id));
   }
 
-  const visibleNodeIds = new Set(visibleNodes.map((node) => node.symbol_id));
-  const visibleUnresolvedCount = visibleNodes.filter((node) => node.symbol_type === "unresolved").length;
+  if (uiState.currentFilter === "local") {
+    visibleNodes = visibleNodes.filter((node) => localFocusIds.has(node.symbol_id));
+    const keepIds = new Set(visibleNodes.map((node) => node.symbol_id));
+    visibleEdges = visibleEdges.filter((edge) => keepIds.has(edge.caller_id) && keepIds.has(edge.callee_id));
+  }
+
   const rankedVisibleNodes = rankNodes(visibleNodes, visibleEdges, centerIds);
 
   return {
+    graph,
     visibleNodes,
     visibleEdges,
-    visibleNodeIds,
-    visibleUnresolvedCount,
+    visibleUnresolvedCount: visibleNodes.filter((node) => node.symbol_type === "unresolved").length,
     centerIds,
     focusIds,
+    searchMatches,
+    searchMatchIds: new Set(searchMatches.map((node) => node.symbol_id)),
+    localFocusIds,
     rankedVisibleNodes,
+    pinnedNodeIds: new Set(uiState.pinnedNodeIds),
+    hasLocalContext: localFocusIds.size > 0,
   };
+}
+
+function buildAdjacency(edges) {
+  const adjacency = new Map();
+  edges.forEach((edge) => {
+    ensureAdjacencyBucket(adjacency, edge.caller_id).outbound.add(edge.callee_id);
+    ensureAdjacencyBucket(adjacency, edge.callee_id).inbound.add(edge.caller_id);
+  });
+  return adjacency;
+}
+
+function ensureAdjacencyBucket(adjacency, symbolId) {
+  if (!adjacency.has(symbolId)) {
+    adjacency.set(symbolId, { inbound: new Set(), outbound: new Set() });
+  }
+  return adjacency.get(symbolId);
+}
+
+function buildSearchMatches(nodes, query) {
+  if (!query) return [];
+  const normalizedQuery = query.toLowerCase();
+  return nodes.filter((node) => {
+    const label = shortNodeLabel(node).toLowerCase();
+    const qualname = String(node.qualname || "").toLowerCase();
+    return label.includes(normalizedQuery) || qualname.includes(normalizedQuery);
+  });
+}
+
+function buildLocalFocusIds(adjacency) {
+  const localIds = new Set();
+  const seeds = new Set(uiState.pinnedNodeIds);
+  if (uiState.selectedNodeId) {
+    seeds.add(uiState.selectedNodeId);
+  }
+
+  seeds.forEach((symbolId) => {
+    localIds.add(symbolId);
+    const bucket = adjacency.get(symbolId);
+    if (!bucket) return;
+    bucket.inbound.forEach((id) => localIds.add(id));
+    bucket.outbound.forEach((id) => localIds.add(id));
+  });
+
+  return localIds;
 }
 
 function collectConnectedNodeIds(edges) {
@@ -194,7 +309,10 @@ function collectConnectedNodeIds(edges) {
 function rankNodes(nodes, edges, centerIds) {
   const scores = new Map();
   nodes.forEach((node) => {
-    scores.set(node.symbol_id, centerIds.has(node.symbol_id) ? 8 : 2);
+    const pinBoost = uiState.pinnedNodeIds.has(node.symbol_id) ? 6 : 0;
+    const centerBoost = centerIds.has(node.symbol_id) ? 8 : 2;
+    const searchBoost = matchesQuery(node, uiState.searchQuery) ? 4 : 0;
+    scores.set(node.symbol_id, centerBoost + pinBoost + searchBoost);
   });
 
   edges.forEach((edge) => {
@@ -209,13 +327,17 @@ function rankNodes(nodes, edges, centerIds) {
     }
   });
 
-  return nodes
-    .slice()
-    .sort((a, b) => {
-      const scoreDiff = (scores.get(b.symbol_id) || 0) - (scores.get(a.symbol_id) || 0);
-      if (scoreDiff !== 0) return scoreDiff;
-      return a.qualname.localeCompare(b.qualname);
-    });
+  return nodes.slice().sort((a, b) => {
+    const scoreDiff = (scores.get(b.symbol_id) || 0) - (scores.get(a.symbol_id) || 0);
+    if (scoreDiff !== 0) return scoreDiff;
+    return String(a.qualname || "").localeCompare(String(b.qualname || ""));
+  });
+}
+
+function matchesQuery(node, query) {
+  if (!query) return false;
+  const normalizedQuery = query.toLowerCase();
+  return shortNodeLabel(node).toLowerCase().includes(normalizedQuery) || String(node.qualname || "").toLowerCase().includes(normalizedQuery);
 }
 
 function updateOverview(graph, view) {
@@ -223,7 +345,7 @@ function updateOverview(graph, view) {
   metricNodes.textContent = String(view.visibleNodes.length);
   metricEdges.textContent = String(view.visibleEdges.length);
   metricUnresolved.textContent = String(view.visibleUnresolvedCount);
-  overviewNote.textContent = buildOverviewNote(graph, view);
+  overviewNote.textContent = buildOverviewNote(view);
 
   const anchorNodes = view.rankedVisibleNodes.slice(0, 5);
   if (!anchorNodes.length) {
@@ -247,35 +369,126 @@ function updateOverview(graph, view) {
   });
 }
 
-function buildOverviewNote(graph, view) {
+function buildOverviewNote(view) {
   const centerCount = view.visibleNodes.filter((node) => view.centerIds.has(node.symbol_id)).length;
   const externalCount = view.visibleNodes.length - centerCount;
   const anchorLabel = view.rankedVisibleNodes[0] ? shortNodeLabel(view.rankedVisibleNodes[0]) : "暂无";
+
   if (view.visibleNodes.length === 0) {
-    return "当前过滤结果为空。可以切回“全部”或“主干优先”，重新找入口。";
+    return uiState.currentFilter === "local"
+      ? "局部聚焦当前没有上下文。先选择一个节点，或固定几个关键节点后再试。"
+      : "当前过滤结果为空。可以切回“全部”或“主干优先”，重新找入口。";
   }
+
+  if (uiState.currentFilter === "local") {
+    return `当前是“局部聚焦”：围绕已选择或已固定节点，只展示一跳邻域。建议从 ${anchorLabel} 开始。`;
+  }
+
   if (view.visibleNodes.length > 14) {
     return `这是一个偏大的单文件视图：当前展示 ${centerCount} 个目标文件节点、${externalCount} 个支撑节点。建议先从 ${anchorLabel} 开始，再逐步展开。`;
   }
-  return `当前模式是“${FILTER_LABELS[currentFilter]}”。建议从 ${anchorLabel} 起步，优先读目标文件主干，再看跨文件支撑节点。`;
+
+  return `当前模式是“${FILTER_LABELS[uiState.currentFilter]}”。建议从 ${anchorLabel} 起步，优先读目标文件主干，再看跨文件支撑节点。`;
 }
 
 function updateGraphMeta(graph, view) {
   const centerCount = view.visibleNodes.filter((node) => view.centerIds.has(node.symbol_id)).length;
   const noisyCount = view.visibleEdges.filter((edge) => edge.status !== "resolved").length;
-  graphSummary.textContent =
-    view.visibleNodes.length === 0
-      ? "当前过滤条件下没有可读节点。"
-      : `当前显示 ${view.visibleNodes.length} 个节点，其中 ${centerCount} 个来自目标文件；${noisyCount} 条边仍带不确定性。`;
+  const matchedCount = view.searchMatches.length;
+  const pinnedCount = view.pinnedNodeIds.size;
+
+  if (view.visibleNodes.length === 0) {
+    graphSummary.textContent = "当前没有可显示节点。";
+  } else {
+    graphSummary.textContent = `当前显示 ${view.visibleNodes.length} 个节点，其中 ${centerCount} 个来自目标文件；${noisyCount} 条边仍带不确定性；已固定 ${pinnedCount} 个节点。`;
+  }
+
+  if (uiState.currentFilter === "local") {
+    graphModeHint.textContent = view.hasLocalContext
+      ? `当前是局部聚焦模式：围绕已选/已固定节点显示一跳邻域。${matchedCount ? ` 当前有 ${matchedCount} 个搜索匹配。` : ""}`
+      : "局部聚焦还没有上下文。请选择或固定一个节点。";
+    return;
+  }
+
   graphModeHint.textContent =
     view.visibleNodes.length > 10
-      ? "当前是分栏阅读布局：中间优先看目标文件主干，两侧看支撑或跨文件节点。"
+      ? `当前是分栏阅读布局：中间优先看目标文件主干，两侧看支撑或跨文件节点。${matchedCount ? ` 当前高亮 ${matchedCount} 个搜索匹配。` : ""}`
       : "当前是轻量分栏布局：节点较少，建议按“建议先读”顺序逐个打开。";
 }
 
-function renderGraph(graph, view) {
-  graphSvg.innerHTML = "";
+function updateSearchSummary(matches) {
+  if (!uiState.currentGraph) {
+    searchSummary.textContent = "输入后会高亮匹配节点，并在这里给出快捷结果。";
+    return;
+  }
+  if (!uiState.searchQuery) {
+    searchSummary.textContent = "输入后会高亮匹配节点，并在这里给出快捷结果。";
+    return;
+  }
+  if (!matches.length) {
+    searchSummary.textContent = `没有找到和“${uiState.searchQuery}”相关的节点。`;
+    return;
+  }
+  searchSummary.textContent = `找到 ${matches.length} 个匹配节点。点击结果可直接打开节点详情。`;
+}
 
+function renderSearchResults(matches) {
+  if (!matches.length) {
+    searchResults.innerHTML = `<span class="anchor-empty">${UI_COPY.emptySearch}</span>`;
+    return;
+  }
+
+  searchResults.innerHTML = matches
+    .slice(0, 8)
+    .map(
+      (node) => `
+        <button class="anchor-chip" type="button" data-search-symbol-id="${escapeHtml(node.symbol_id)}">
+          <span>${escapeHtml(shortNodeLabel(node))}</span>
+        </button>
+      `,
+    )
+    .join("");
+
+  Array.from(searchResults.querySelectorAll("[data-search-symbol-id]")).forEach((button) => {
+    button.addEventListener("click", () => selectNode(button.dataset.searchSymbolId));
+  });
+}
+
+function renderPinnedNodes() {
+  const pinned = Array.from(uiState.pinnedNodeIds)
+    .map((symbolId) => findNodeById(symbolId))
+    .filter(Boolean);
+
+  pinSummary.textContent = pinned.length
+    ? `当前已固定 ${pinned.length} 个节点。配合“局部聚焦”可只看它们的一跳邻域。`
+    : "固定主干节点后，可以配合“局部聚焦”缩小阅读范围。";
+
+  if (!pinned.length) {
+    pinnedNodes.innerHTML = `<span class="anchor-empty">${UI_COPY.emptyPins}</span>`;
+    return;
+  }
+
+  pinnedNodes.innerHTML = pinned
+    .map(
+      (node) => `
+        <span class="pin-chip">
+          <button type="button" data-pinned-symbol-id="${escapeHtml(node.symbol_id)}">${escapeHtml(shortNodeLabel(node))}</button>
+          <button type="button" data-unpin-symbol-id="${escapeHtml(node.symbol_id)}">×</button>
+        </span>
+      `,
+    )
+    .join("");
+
+  Array.from(pinnedNodes.querySelectorAll("[data-pinned-symbol-id]")).forEach((button) => {
+    button.addEventListener("click", () => selectNode(button.dataset.pinnedSymbolId));
+  });
+  Array.from(pinnedNodes.querySelectorAll("[data-unpin-symbol-id]")).forEach((button) => {
+    button.addEventListener("click", () => togglePinnedNode(button.dataset.unpinSymbolId));
+  });
+}
+
+function renderGraph(view) {
+  graphSvg.innerHTML = "";
   const width = 1280;
   const rowHeight = 94;
   const paddingTop = 90;
@@ -292,24 +505,13 @@ function renderGraph(graph, view) {
   const lanes = splitSupportLanes(supportNodes);
 
   centerNodes.forEach((node, index) => {
-    positions.set(node.symbol_id, {
-      x: width * 0.5,
-      y: paddingTop + index * rowHeight,
-    });
+    positions.set(node.symbol_id, { x: width * 0.5, y: paddingTop + index * rowHeight });
   });
-
   lanes.left.forEach((node, index) => {
-    positions.set(node.symbol_id, {
-      x: width * 0.2,
-      y: paddingTop + index * rowHeight,
-    });
+    positions.set(node.symbol_id, { x: width * 0.2, y: paddingTop + index * rowHeight });
   });
-
   lanes.right.forEach((node, index) => {
-    positions.set(node.symbol_id, {
-      x: width * 0.8,
-      y: paddingTop + index * rowHeight,
-    });
+    positions.set(node.symbol_id, { x: width * 0.8, y: paddingTop + index * rowHeight });
   });
 
   const maxRows = Math.max(centerNodes.length, lanes.left.length, lanes.right.length, 1);
@@ -328,11 +530,8 @@ function splitSupportLanes(nodes) {
   const left = [];
   const right = [];
   nodes.forEach((node, index) => {
-    if (index % 2 === 0) {
-      left.push(node);
-    } else {
-      right.push(node);
-    }
+    if (index % 2 === 0) left.push(node);
+    else right.push(node);
   });
   return { left, right };
 }
@@ -429,7 +628,9 @@ function buildNodeClass(node, view) {
   if (node.symbol_type === "unresolved") classes.push("unresolved");
   if (node.symbol_type === "ambiguous") classes.push("ambiguous");
   if (view.focusIds.has(node.symbol_id)) classes.push("focus");
-  if (selectedNodeId === node.symbol_id) classes.push("selected");
+  if (view.searchMatchIds.has(node.symbol_id)) classes.push("matched");
+  if (view.pinnedNodeIds.has(node.symbol_id)) classes.push("pinned");
+  if (uiState.selectedNodeId === node.symbol_id) classes.push("selected");
   return classes.join(" ");
 }
 
@@ -564,12 +765,12 @@ function showEmpty() {
   detailContent.innerHTML = "";
   expandButton.disabled = true;
   jumpButton.disabled = true;
+  pinButton.disabled = true;
+  pinButton.classList.remove("is-pinned");
 }
 
 function renderStringList(items) {
-  if (!items || !items.length) {
-    return "<li>暂无</li>";
-  }
+  if (!items || !items.length) return "<li>暂无</li>";
   return items.map((item) => `<li>${escapeHtml(item)}</li>`).join("");
 }
 

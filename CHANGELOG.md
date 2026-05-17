@@ -11,6 +11,7 @@ All notable changes to this repository will be documented in this file.
 - Accuracy-improvement design and execution documents
 - Realistic `service_case` fixture covering package-style service orchestration flows
 - Frontend readability planning documents for the Chinese-first UI iteration
+- Frontend navigation planning documents for search, pinning, and local-focus controls
 
 ### Changed
 
@@ -18,6 +19,7 @@ All notable changes to this repository will be documented in this file.
 - Distinct ambiguous vs unresolved rendering in the browser UI
 - Improved Python resolution for module-alias class construction and follow-on service instance calls
 - Reworked the browser UI into a Chinese-first reading workflow with overview metrics, reading anchors, low-noise filters, and a lane-based layout for larger single-file graphs
+- Added large-graph navigation helpers to the browser UI, including graph-local search, fixed nodes, and a local-focus mode around selected or pinned nodes
 
 ## [0.1.0] - 2026-05-16
 

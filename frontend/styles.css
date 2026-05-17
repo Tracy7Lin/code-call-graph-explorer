@@ -130,6 +130,7 @@ button[disabled] {
 
 .overview-card,
 .view-controls,
+.navigation-card,
 .source-card,
 .summary-card,
 .detail-callout {
@@ -137,7 +138,8 @@ button[disabled] {
 }
 
 .overview-card,
-.view-controls {
+.view-controls,
+.navigation-card {
   background: rgba(255, 255, 255, 0.72);
   border-radius: 20px;
   padding: 16px;
@@ -153,6 +155,12 @@ button[disabled] {
 .overview-note {
   margin: 0;
   line-height: 1.55;
+}
+
+.navigation-note {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.5;
 }
 
 .overview-metrics {
@@ -185,6 +193,10 @@ button[disabled] {
   color: var(--accent);
 }
 
+.search-field {
+  gap: 8px;
+}
+
 .anchor-list,
 .toggle-group,
 .legend,
@@ -197,6 +209,7 @@ button[disabled] {
 
 .anchor-chip,
 .filter-chip,
+.pin-chip,
 .legend-chip,
 .badge,
 .badge.soft {
@@ -208,7 +221,8 @@ button[disabled] {
 }
 
 .anchor-chip,
-.filter-chip {
+.filter-chip,
+.pin-chip {
   cursor: pointer;
 }
 
@@ -217,6 +231,21 @@ button[disabled] {
   align-items: center;
   gap: 8px;
   background: rgba(0, 95, 115, 0.06);
+}
+
+.pin-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(10, 84, 100, 0.08);
+}
+
+.pin-chip button {
+  border: 0;
+  background: transparent;
+  color: var(--accent-strong);
+  padding: 0;
+  font-weight: 700;
 }
 
 .anchor-rank {
@@ -234,6 +263,10 @@ button[disabled] {
 .filter-chip.active {
   background: var(--accent);
   color: white;
+}
+
+.filter-chip.local-active {
+  background: var(--accent-strong);
 }
 
 .legend-chip.resolved {
@@ -325,6 +358,16 @@ button[disabled] {
 
 .node.focus rect {
   stroke-width: 3.4;
+}
+
+.node.matched rect {
+  stroke-width: 3.4;
+  stroke: #1f7a8c;
+}
+
+.node.pinned rect {
+  stroke-width: 3.8;
+  stroke: #7b4f00;
 }
 
 .node.selected rect {
@@ -440,6 +483,17 @@ button[disabled] {
 
 .detail-callout.unresolved {
   background: var(--danger-soft);
+}
+
+.detail-actions #pin-node {
+  background: rgba(10, 84, 100, 0.12);
+  color: var(--accent-strong);
+  border-color: rgba(10, 84, 100, 0.18);
+}
+
+.detail-actions #pin-node.is-pinned {
+  background: var(--accent-strong);
+  color: white;
 }
 
 .source-card {
