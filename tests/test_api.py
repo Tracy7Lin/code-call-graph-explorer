@@ -88,6 +88,36 @@ class ExplorerServiceTests(unittest.TestCase):
         self.assertEqual(method_edge["reason"], "instance_method")
         self.assertEqual(method_edge["callee_id"], "factory_case/worker.py::Worker.run")
 
+    def test_service_fixture_projects_module_alias_constructor_and_instance_method_edges(self) -> None:
+        service_repo = FIXTURE_ROOT
+        service = ExplorerService(service_repo)
+        detail = service.get_node_detail("service_case/app.py::run_job", with_llm=True).to_dict()
+
+        constructor_edge = next(edge for edge in detail["outbound_edges"] if edge["call_expr"] == "order_services.OrderService")
+        self.assertEqual(constructor_edge["status"], "resolved")
+        self.assertEqual(constructor_edge["callee_id"], "service_case/services/orders.py::OrderService")
+
+        process_edge = next(edge for edge in detail["outbound_edges"] if edge["call_expr"] == "service.process")
+        self.assertEqual(process_edge["status"], "resolved")
+        self.assertEqual(process_edge["reason"], "instance_method")
+        self.assertEqual(process_edge["callee_id"], "service_case/services/orders.py::OrderService.process")
+
+    def test_service_fixture_detail_preserves_explicit_unresolved_dependency_calls(self) -> None:
+        service = ExplorerService(FIXTURE_ROOT)
+        detail = service.get_node_detail("service_case/services/orders.py::OrderService.process", with_llm=True).to_dict()
+
+        normalize_edge = next(edge for edge in detail["outbound_edges"] if edge["call_expr"] == "normalize_payload")
+        self.assertEqual(normalize_edge["status"], "resolved")
+
+        send_edge = next(edge for edge in detail["outbound_edges"] if edge["call_expr"] == "self.client.send")
+        self.assertEqual(send_edge["status"], "unresolved")
+        self.assertEqual(send_edge["reason"], "unknown_target")
+
+        unresolved_suggestion = next(
+            suggestion for suggestion in detail["advisory_suggestions"] if suggestion["call_expr"] == "self.client.send"
+        )
+        self.assertEqual(unresolved_suggestion["edge_status"], "unresolved")
+
 
 if __name__ == "__main__":
     unittest.main()

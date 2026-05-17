@@ -60,6 +60,12 @@ class CallResolver:
             imported_class = self.symbol_index.resolve_imported_symbol(self.rel_path, func.id)
             if imported_class and self.symbol_index.get_symbol(imported_class).symbol_type == "class":
                 return imported_class
+        if isinstance(func, ast.Attribute):
+            owner = render_expr(func.value)
+            module_name = self.symbol_index.resolve_module_alias(self.rel_path, owner) or owner
+            class_symbol_id = self.symbol_index.resolve_class(module_name, func.attr)
+            if class_symbol_id:
+                return class_symbol_id
         return None
 
     def resolve_direct_function_symbol(self, func: ast.AST) -> str | None:

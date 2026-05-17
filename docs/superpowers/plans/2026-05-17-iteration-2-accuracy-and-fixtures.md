@@ -17,10 +17,10 @@
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/tests/test_analyzer.py`
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/tests/test_api.py`
 
-- [ ] **Step 1: Add realistic multi-file fixture shapes for common Python service/module flows**
-- [ ] **Step 2: Write failing analyzer tests first**
-- [ ] **Step 3: Add API-level checks only where projection behavior matters**
-- [ ] **Step 4: Run focused tests and confirm the failure shape**
+- [x] **Step 1: Add realistic multi-file fixture shapes for common Python service/module flows**
+- [x] **Step 2: Write failing analyzer tests first**
+- [x] **Step 3: Add API-level checks only where projection behavior matters**
+- [x] **Step 4: Run focused tests and confirm the failure shape**
 
 ### Task 2: Implement the next tier of trustworthy Python resolution rules
 
@@ -28,10 +28,10 @@
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/backend/languages/python/analyzer/*`
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/backend/languages/python/indexer/*`
 
-- [ ] **Step 1: Extend only statically trustworthy resolution cases**
-- [ ] **Step 2: Keep unresolved and ambiguous outcomes explicit where certainty is insufficient**
-- [ ] **Step 3: Preserve rule-family boundaries and avoid growing central mixed-responsibility files**
-- [ ] **Step 4: Re-run focused analyzer/API tests until green**
+- [x] **Step 1: Extend only statically trustworthy resolution cases**
+- [x] **Step 2: Keep unresolved and ambiguous outcomes explicit where certainty is insufficient**
+- [x] **Step 3: Preserve rule-family boundaries and avoid growing central mixed-responsibility files**
+- [x] **Step 4: Re-run focused analyzer/API tests until green**
 
 ### Task 3: Review regression quality and harden test coverage
 
@@ -39,10 +39,10 @@
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/tests/test_analyzer.py`
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/tests/test_api.py`
 
-- [ ] **Step 1: Review whether each new fixture is actually pulling its weight**
-- [ ] **Step 2: Add missing assertions for uncertainty states and cross-file call paths**
-- [ ] **Step 3: Keep test names and failure messages specific**
-- [ ] **Step 4: Run the full quality gate**
+- [x] **Step 1: Review whether each new fixture is actually pulling its weight**
+- [x] **Step 2: Add missing assertions for uncertainty states and cross-file call paths**
+- [x] **Step 3: Keep test names and failure messages specific**
+- [x] **Step 4: Run the full quality gate**
 
 ### Task 4: Update roadmap/docs and ship the milestone
 
@@ -51,7 +51,7 @@
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/docs/roadmap.md`
 - Modify: `E:/Jarvis_fun/python-call-graph-explorer/CHANGELOG.md`
 
-- [ ] **Step 1: Document the richer fixture/accuracy milestone**
-- [ ] **Step 2: Keep roadmap ordering aligned with actual execution**
-- [ ] **Step 3: Review diff scope and remaining risks**
-- [ ] **Step 4: Commit and push the milestone**
+- [x] **Step 1: Document the richer fixture/accuracy milestone**
+- [x] **Step 2: Keep roadmap ordering aligned with actual execution**
+- [x] **Step 3: Review diff scope and remaining risks**
+- [x] **Step 4: Commit and push the milestone**

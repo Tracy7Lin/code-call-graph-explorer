@@ -141,6 +141,38 @@ class AnalyzerTests(unittest.TestCase):
         self.assertEqual(edges_by_expr["worker.run"].reason, "instance_method")
         self.assertEqual(edges_by_expr["worker.run"].callee_id, "annotated_case/worker.py::Worker.run")
 
+    def test_resolves_module_alias_class_construction_and_service_instance_calls(self) -> None:
+        repo_root = FIXTURE_ROOT
+        index = SymbolIndex.build(repo_root)
+        graph = analyze_file(
+            repo_root=repo_root,
+            target_file=repo_root / "service_case" / "app.py",
+            symbol_index=index,
+        )
+
+        edges_by_expr = {edge.call_expr: edge for edge in graph.edges}
+        self.assertEqual(edges_by_expr["ApiClient"].status, "resolved")
+        self.assertEqual(edges_by_expr["order_services.OrderService"].status, "resolved")
+        self.assertEqual(edges_by_expr["order_services.OrderService"].callee_id, "service_case/services/orders.py::OrderService")
+        self.assertEqual(edges_by_expr["service.process"].status, "resolved")
+        self.assertEqual(edges_by_expr["service.process"].reason, "instance_method")
+        self.assertEqual(edges_by_expr["service.process"].callee_id, "service_case/services/orders.py::OrderService.process")
+
+    def test_service_fixture_keeps_unknown_self_attribute_calls_explicitly_unresolved(self) -> None:
+        repo_root = FIXTURE_ROOT
+        index = SymbolIndex.build(repo_root)
+        graph = analyze_file(
+            repo_root=repo_root,
+            target_file=repo_root / "service_case" / "services" / "orders.py",
+            symbol_index=index,
+        )
+
+        edges_by_expr = {edge.call_expr: edge for edge in graph.edges}
+        self.assertEqual(edges_by_expr["normalize_payload"].status, "resolved")
+        self.assertEqual(edges_by_expr["normalize_payload"].callee_id, "service_case/utils/formatting.py::normalize_payload")
+        self.assertEqual(edges_by_expr["self.client.send"].status, "unresolved")
+        self.assertEqual(edges_by_expr["self.client.send"].reason, "unknown_target")
+
 
 if __name__ == "__main__":
     unittest.main()
