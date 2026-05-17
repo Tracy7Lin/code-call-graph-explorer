@@ -20,7 +20,7 @@ Planned work is tracked in [docs/roadmap.md](docs/roadmap.md).
 - Jump to cross-file definitions through a lightweight repository index
 - Inspect symbol signatures, source snippets, docstrings, and static facts
 - Serve a zero-dependency browser UI from the local Python backend
-- Read the graph through a Chinese-first interface with overview metrics, reading anchors, low-noise filters, graph search, pinned nodes, and local-focus navigation for larger files
+- Read the graph through a Chinese-first interface with overview metrics, reading anchors, low-noise filters, graph search, pinned nodes, local-focus navigation, and path-focused reading for larger files
 
 ## Architecture Status
 
@@ -58,6 +58,7 @@ The browser UI now emphasizes a reading workflow:
 - use `主干优先` or `仅看已确认` when a single-file graph becomes dense
 - use graph search and fixed nodes when the graph is too large to rescan manually
 - use `局部聚焦` to collapse attention around the selected or pinned nodes
+- use `路径聚焦` when the question is “how does this node reach that node”
 - open node detail to inspect resolution basis and progressively expanded source
 
 ## Test
@@ -95,3 +96,5 @@ python scripts/dev.py quality
 - Frontend readability design: [docs/2026-05-17-frontend-readability-design.md](docs/2026-05-17-frontend-readability-design.md)
 - Frontend navigation requirements: [docs/2026-05-17-frontend-navigation-requirements.md](docs/2026-05-17-frontend-navigation-requirements.md)
 - Frontend navigation design: [docs/2026-05-17-frontend-navigation-design.md](docs/2026-05-17-frontend-navigation-design.md)
+- Frontend path-reading requirements: [docs/2026-05-17-frontend-path-reading-requirements.md](docs/2026-05-17-frontend-path-reading-requirements.md)
+- Frontend path-reading design: [docs/2026-05-17-frontend-path-reading-design.md](docs/2026-05-17-frontend-path-reading-design.md)

@@ -269,6 +269,10 @@ button[disabled] {
   background: var(--accent-strong);
 }
 
+.filter-chip.path-active {
+  background: #7b4f00;
+}
+
 .legend-chip.resolved {
   background: rgba(0, 95, 115, 0.08);
 }
@@ -370,6 +374,12 @@ button[disabled] {
   stroke: #7b4f00;
 }
 
+.node.path rect {
+  stroke-width: 4;
+  stroke: #7b4f00;
+  fill: #fff7e8;
+}
+
 .node.selected rect {
   stroke: #0a3d4a;
   filter: drop-shadow(0 10px 18px rgba(10, 61, 74, 0.16));
@@ -415,6 +425,12 @@ button[disabled] {
 .edge.ambiguous {
   stroke: var(--warning);
   stroke-dasharray: 5 5;
+}
+
+.edge.path {
+  stroke: #7b4f00;
+  stroke-width: 3.8;
+  opacity: 1;
 }
 
 .detail-panel {

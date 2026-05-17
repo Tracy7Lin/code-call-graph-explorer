@@ -20,6 +20,7 @@ const searchSummary = document.getElementById("search-summary");
 const searchResults = document.getElementById("search-results");
 const pinnedNodes = document.getElementById("pinned-nodes");
 const pinSummary = document.getElementById("pin-summary");
+const pathSummary = document.getElementById("path-summary");
 const filterChips = Array.from(document.querySelectorAll(".filter-chip"));
 
 const FILTER_LABELS = {
@@ -27,6 +28,7 @@ const FILTER_LABELS = {
   focus: "主干优先",
   confirmed: "仅看已确认",
   local: "局部聚焦",
+  path: "路径聚焦",
 };
 
 const STATUS_LABELS = {
@@ -147,6 +149,7 @@ function syncFilterChips() {
     const isActive = chip.dataset.filter === uiState.currentFilter;
     chip.classList.toggle("active", isActive);
     chip.classList.toggle("local-active", isActive && chip.dataset.filter === "local");
+    chip.classList.toggle("path-active", isActive && chip.dataset.filter === "path");
   });
 }
 
@@ -213,6 +216,7 @@ function buildGraphView(graph) {
 
   const searchMatches = buildSearchMatches(graph.nodes, uiState.searchQuery);
   const localFocusIds = buildLocalFocusIds(adjacency);
+  const pathResult = buildPathResult(graph, adjacency);
 
   let visibleNodes = graph.nodes.slice();
   let visibleEdges = graph.edges.slice();
@@ -235,6 +239,12 @@ function buildGraphView(graph) {
     visibleEdges = visibleEdges.filter((edge) => keepIds.has(edge.caller_id) && keepIds.has(edge.callee_id));
   }
 
+  if (uiState.currentFilter === "path") {
+    visibleNodes = visibleNodes.filter((node) => pathResult.nodeIds.has(node.symbol_id));
+    const keepIds = new Set(visibleNodes.map((node) => node.symbol_id));
+    visibleEdges = visibleEdges.filter((edge) => pathResult.edgeIds.has(edge.edge_id) && keepIds.has(edge.caller_id) && keepIds.has(edge.callee_id));
+  }
+
   const rankedVisibleNodes = rankNodes(visibleNodes, visibleEdges, centerIds);
 
   return {
@@ -247,6 +257,7 @@ function buildGraphView(graph) {
     searchMatches,
     searchMatchIds: new Set(searchMatches.map((node) => node.symbol_id)),
     localFocusIds,
+    pathResult,
     rankedVisibleNodes,
     pinnedNodeIds: new Set(uiState.pinnedNodeIds),
     hasLocalContext: localFocusIds.size > 0,
@@ -295,6 +306,95 @@ function buildLocalFocusIds(adjacency) {
   });
 
   return localIds;
+}
+
+function buildPathResult(graph, adjacency) {
+  const empty = {
+    nodeIds: new Set(),
+    edgeIds: new Set(),
+    found: false,
+    direction: "none",
+    fromId: null,
+    toId: null,
+    nodeCount: 0,
+    edgeCount: 0,
+    reason: buildPathReason(),
+  };
+
+  if (!uiState.selectedNodeId) {
+    return empty;
+  }
+
+  const candidates = Array.from(uiState.pinnedNodeIds).filter((id) => id !== uiState.selectedNodeId);
+  if (!candidates.length) {
+    return empty;
+  }
+
+  for (const pinnedId of candidates) {
+    const forward = shortestPath(uiState.selectedNodeId, pinnedId, adjacency, "outbound");
+    if (forward) {
+      return finalizePathResult(forward, graph.edges, uiState.selectedNodeId, pinnedId, "forward");
+    }
+
+    const reverse = shortestPath(pinnedId, uiState.selectedNodeId, adjacency, "outbound");
+    if (reverse) {
+      return finalizePathResult(reverse, graph.edges, pinnedId, uiState.selectedNodeId, "reverse");
+    }
+  }
+
+  return empty;
+}
+
+function buildPathReason() {
+  if (!uiState.selectedNodeId) {
+    return "还没有已选择节点。";
+  }
+  if (!uiState.pinnedNodeIds.size) {
+    return "还没有固定节点。";
+  }
+  return "已选择节点和固定节点之间暂时没有可见路径。";
+}
+
+function shortestPath(startId, endId, adjacency, directionKey) {
+  const queue = [[startId]];
+  const visited = new Set([startId]);
+
+  while (queue.length) {
+    const path = queue.shift();
+    const current = path[path.length - 1];
+    if (current === endId) {
+      return path;
+    }
+
+    const bucket = adjacency.get(current);
+    if (!bucket) continue;
+    for (const nextId of bucket[directionKey]) {
+      if (visited.has(nextId)) continue;
+      visited.add(nextId);
+      queue.push([...path, nextId]);
+    }
+  }
+
+  return null;
+}
+
+function finalizePathResult(path, edges, fromId, toId, direction) {
+  const edgeIds = new Set();
+  for (let index = 0; index < path.length - 1; index += 1) {
+    const edge = edges.find((item) => item.caller_id === path[index] && item.callee_id === path[index + 1]);
+    edgeIds.add(edge ? edge.edge_id : `${path[index]}=>${path[index + 1]}`);
+  }
+  return {
+    nodeIds: new Set(path),
+    edgeIds,
+    found: true,
+    direction,
+    fromId,
+    toId,
+    nodeCount: path.length,
+    edgeCount: Math.max(path.length - 1, 0),
+    reason: "",
+  };
 }
 
 function collectConnectedNodeIds(edges) {
@@ -410,10 +510,25 @@ function updateGraphMeta(graph, view) {
     return;
   }
 
+  if (uiState.currentFilter === "path") {
+    if (view.pathResult.found) {
+      const fromNode = findNodeById(view.pathResult.fromId);
+      const toNode = findNodeById(view.pathResult.toId);
+      const directionText = view.pathResult.direction === "reverse" ? "（相对当前选择方向反向找到）" : "";
+      graphModeHint.textContent = `当前是路径聚焦：${shortNodeLabel(fromNode)} -> ${shortNodeLabel(toNode)}，共 ${view.pathResult.edgeCount} 条边 ${directionText}`;
+      pathSummary.textContent = `已找到路径：${shortNodeLabel(fromNode)} -> ${shortNodeLabel(toNode)}，路径包含 ${view.pathResult.nodeCount} 个节点。`;
+    } else {
+      graphModeHint.textContent = "路径聚焦当前没有可显示路径。";
+      pathSummary.textContent = view.pathResult.reason;
+    }
+    return;
+  }
+
   graphModeHint.textContent =
     view.visibleNodes.length > 10
       ? `当前是分栏阅读布局：中间优先看目标文件主干，两侧看支撑或跨文件节点。${matchedCount ? ` 当前高亮 ${matchedCount} 个搜索匹配。` : ""}`
       : "当前是轻量分栏布局：节点较少，建议按“建议先读”顺序逐个打开。";
+  pathSummary.textContent = "先选择一个节点，再固定一个相关节点，然后切到“路径聚焦”查看两者之间的最短静态路径。";
 }
 
 function updateSearchSummary(matches) {
@@ -522,7 +637,7 @@ function renderGraph(view) {
   renderLaneTitle("目标文件主干", width * 0.5, 48);
   renderLaneTitle("跨文件节点", width * 0.8, 48);
 
-  view.visibleEdges.forEach((edge) => renderEdge(edge, positions));
+  view.visibleEdges.forEach((edge) => renderEdge(edge, positions, view));
   view.visibleNodes.forEach((node) => renderNode(node, positions, view));
 }
 
@@ -564,13 +679,13 @@ function renderLaneTitle(label, x, y) {
   graphSvg.appendChild(text);
 }
 
-function renderEdge(edge, positions) {
+function renderEdge(edge, positions, view) {
   const from = positions.get(edge.caller_id);
   const to = positions.get(edge.callee_id);
   if (!from || !to) return;
   const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
   path.setAttribute("d", buildEdgePath(from, to));
-  path.setAttribute("class", buildEdgeClass(edge));
+  path.setAttribute("class", buildEdgeClass(edge, view));
   graphSvg.appendChild(path);
 }
 
@@ -580,7 +695,8 @@ function buildEdgePath(from, to) {
   return `M ${from.x} ${from.y} C ${from.x} ${from.y + curveOffset}, ${to.x} ${to.y - curveOffset}, ${to.x} ${to.y}`;
 }
 
-function buildEdgeClass(edge) {
+function buildEdgeClass(edge, view) {
+  if (uiState.currentFilter === "path" && view.pathResult.edgeIds.has(edge.edge_id)) return "edge path";
   if (edge.status === "ambiguous") return "edge ambiguous";
   if (edge.status === "unresolved") return "edge unresolved";
   return "edge";
@@ -630,6 +746,7 @@ function buildNodeClass(node, view) {
   if (view.focusIds.has(node.symbol_id)) classes.push("focus");
   if (view.searchMatchIds.has(node.symbol_id)) classes.push("matched");
   if (view.pinnedNodeIds.has(node.symbol_id)) classes.push("pinned");
+  if (view.pathResult.nodeIds.has(node.symbol_id)) classes.push("path");
   if (uiState.selectedNodeId === node.symbol_id) classes.push("selected");
   return classes.join(" ");
 }

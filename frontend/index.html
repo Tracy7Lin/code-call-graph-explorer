@@ -65,6 +65,7 @@
             <button class="filter-chip" data-filter="focus" type="button">主干优先</button>
             <button class="filter-chip" data-filter="confirmed" type="button">仅看已确认</button>
             <button class="filter-chip" data-filter="local" type="button">局部聚焦</button>
+            <button class="filter-chip" data-filter="path" type="button">路径聚焦</button>
           </div>
           <div class="legend">
             <span class="legend-chip resolved">已确认</span>
@@ -91,6 +92,13 @@
           <div id="pinned-nodes" class="anchor-list">
             <span class="anchor-empty">还没有固定节点。</span>
           </div>
+        </section>
+
+        <section class="navigation-card">
+          <div class="section-title">路径阅读</div>
+          <p id="path-summary" class="navigation-note">
+            先选择一个节点，再固定一个相关节点，然后切到“路径聚焦”查看两者之间的最短静态路径。
+          </p>
         </section>
       </section>
 
