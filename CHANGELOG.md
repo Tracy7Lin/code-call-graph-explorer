@@ -13,6 +13,7 @@ All notable changes to this repository will be documented in this file.
 - Frontend readability planning documents for the Chinese-first UI iteration
 - Frontend navigation planning documents for search, pinning, and local-focus controls
 - Frontend path-reading planning documents for path-focused graph reading
+- Frontend shell simplification planning documents for drawer-based shell cleanup
 
 ### Changed
 
@@ -22,6 +23,7 @@ All notable changes to this repository will be documented in this file.
 - Reworked the browser UI into a Chinese-first reading workflow with overview metrics, reading anchors, low-noise filters, and a lane-based layout for larger single-file graphs
 - Added large-graph navigation helpers to the browser UI, including graph-local search, fixed nodes, and a local-focus mode around selected or pinned nodes
 - Added a path-focused reading mode to the browser UI so complex graphs can be reduced to the shortest visible thread between a selected node and a pinned node
+- Reworked the browser shell into a graph-first surface with on-demand control and detail drawers instead of persistent wide side panels
 
 ## [0.1.0] - 2026-05-16
 

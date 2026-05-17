@@ -3,13 +3,23 @@ const graphTitle = document.getElementById("graph-title");
 const graphModeHint = document.getElementById("graph-mode-hint");
 const graphSummary = document.getElementById("graph-summary");
 const graphSvg = document.getElementById("graph");
+const drawerBackdrop = document.getElementById("drawer-backdrop");
+const controlsDrawer = document.getElementById("controls-drawer");
+const detailDrawer = document.getElementById("detail-drawer");
+const openControlsButton = document.getElementById("open-controls");
+const closeControlsButton = document.getElementById("close-controls");
+const openDetailButton = document.getElementById("open-detail");
+const closeDetailButton = document.getElementById("close-detail");
 const detailEmpty = document.getElementById("detail-empty");
 const detailContent = document.getElementById("detail-content");
 const llmCheckbox = document.getElementById("with-llm");
 const expandButton = document.getElementById("expand-node");
 const jumpButton = document.getElementById("jump-node");
 const pinButton = document.getElementById("pin-node");
-const overviewFile = document.getElementById("overview-file");
+const overviewFiles = [
+  document.getElementById("overview-file"),
+  document.getElementById("overview-file-drawer"),
+].filter(Boolean);
 const overviewNote = document.getElementById("overview-note");
 const metricNodes = document.getElementById("metric-nodes");
 const metricEdges = document.getElementById("metric-edges");
@@ -52,6 +62,8 @@ const uiState = {
   currentFilter: "all",
   searchQuery: "",
   pinnedNodeIds: new Set(),
+  controlsDrawerOpen: false,
+  detailDrawerOpen: false,
 };
 
 hydrateInputsFromQuery();
@@ -59,6 +71,7 @@ bindEvents();
 syncFilterChips();
 renderSearchResults([]);
 renderPinnedNodes();
+syncShellState();
 
 function hydrateInputsFromQuery() {
   const params = new URLSearchParams(window.location.search);
@@ -88,6 +101,11 @@ function bindEvents() {
   expandButton.addEventListener("click", handleExpandNode);
   jumpButton.addEventListener("click", handleJumpToDefinition);
   pinButton.addEventListener("click", handleTogglePinSelection);
+  openControlsButton.addEventListener("click", () => setControlsDrawer(true));
+  closeControlsButton.addEventListener("click", () => setControlsDrawer(false));
+  openDetailButton.addEventListener("click", () => setDetailDrawer(true));
+  closeDetailButton.addEventListener("click", () => setDetailDrawer(false));
+  drawerBackdrop.addEventListener("click", closeDrawers);
 }
 
 async function handleAnalyzeSubmit(event) {
@@ -103,6 +121,7 @@ async function handleAnalyzeSubmit(event) {
   uiState.pinnedNodeIds.clear();
   graphTitle.textContent = uiState.currentGraph.center_file;
   showEmpty();
+  setControlsDrawer(false);
   refreshCurrentGraph();
 }
 
@@ -131,6 +150,7 @@ function refreshCurrentGraph() {
     updateSearchSummary([]);
     renderSearchResults([]);
     renderPinnedNodes();
+    syncShellState();
     return;
   }
 
@@ -141,7 +161,31 @@ function refreshCurrentGraph() {
   renderSearchResults(view.searchMatches);
   renderPinnedNodes();
   syncPinButton();
+  syncShellState();
   renderGraph(view);
+}
+
+function setControlsDrawer(isOpen) {
+  uiState.controlsDrawerOpen = isOpen;
+  syncShellState();
+}
+
+function setDetailDrawer(isOpen) {
+  uiState.detailDrawerOpen = isOpen;
+  syncShellState();
+}
+
+function closeDrawers() {
+  uiState.controlsDrawerOpen = false;
+  uiState.detailDrawerOpen = false;
+  syncShellState();
+}
+
+function syncShellState() {
+  controlsDrawer.setAttribute("aria-hidden", String(!uiState.controlsDrawerOpen));
+  detailDrawer.setAttribute("aria-hidden", String(!uiState.detailDrawerOpen));
+  drawerBackdrop.hidden = !(uiState.controlsDrawerOpen || uiState.detailDrawerOpen);
+  openDetailButton.disabled = !uiState.selectedSymbol && detailContent.hidden;
 }
 
 function syncFilterChips() {
@@ -190,6 +234,7 @@ async function selectNode(symbolId) {
   const response = await fetch(`/api/node?symbol_id=${encodeURIComponent(symbolId)}&with_llm=${withLlm}`);
   const detail = await response.json();
   renderDetail(detail);
+  setDetailDrawer(true);
   refreshCurrentGraph();
 }
 
@@ -441,7 +486,9 @@ function matchesQuery(node, query) {
 }
 
 function updateOverview(graph, view) {
-  overviewFile.textContent = graph.center_file;
+  overviewFiles.forEach((item) => {
+    item.textContent = graph.center_file;
+  });
   metricNodes.textContent = String(view.visibleNodes.length);
   metricEdges.textContent = String(view.visibleEdges.length);
   metricUnresolved.textContent = String(view.visibleUnresolvedCount);
@@ -884,6 +931,7 @@ function showEmpty() {
   jumpButton.disabled = true;
   pinButton.disabled = true;
   pinButton.classList.remove("is-pinned");
+  openDetailButton.disabled = false;
 }
 
 function renderStringList(items) {

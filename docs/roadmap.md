@@ -12,7 +12,7 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 ## Near-Term Priorities
 
 1. Expand realistic fixture repositories and improve trustworthy Python call-resolution coverage.
-2. Add richer thread-level reading tools on top of the current readable UI baseline, such as explicit endpoint picking, multiple alternative paths, or saved bookmarks.
+2. Add richer thread-level reading tools on top of the current simplified UI shell, such as explicit endpoint picking, multiple alternative paths, or saved bookmarks.
 3. Introduce richer node insight generation with configurable LLM providers.
 4. Repository-wide pre-indexing and caching for larger codebases.
 5. Additional language support after the Python flow is stable.
@@ -49,6 +49,9 @@ Ship a reliable local tool that helps a human start reading an unfamiliar Python
 - Frontend path-reading requirements: `docs/2026-05-17-frontend-path-reading-requirements.md`
 - Frontend path-reading design: `docs/2026-05-17-frontend-path-reading-design.md`
 - Frontend path-reading plan: `docs/superpowers/plans/2026-05-17-frontend-path-reading.md`
+- Frontend shell simplification requirements: `docs/2026-05-17-frontend-shell-simplification-requirements.md`
+- Frontend shell simplification design: `docs/2026-05-17-frontend-shell-simplification-design.md`
+- Frontend shell simplification plan: `docs/superpowers/plans/2026-05-17-frontend-shell-simplification.md`
 
 ## Later Work
 

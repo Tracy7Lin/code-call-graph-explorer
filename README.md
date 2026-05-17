@@ -21,6 +21,7 @@ Planned work is tracked in [docs/roadmap.md](docs/roadmap.md).
 - Inspect symbol signatures, source snippets, docstrings, and static facts
 - Serve a zero-dependency browser UI from the local Python backend
 - Read the graph through a Chinese-first interface with overview metrics, reading anchors, low-noise filters, graph search, pinned nodes, local-focus navigation, and path-focused reading for larger files
+- Use a graph-first shell where controls and detail live in drawers instead of permanent side columns
 
 ## Architecture Status
 
@@ -59,6 +60,7 @@ The browser UI now emphasizes a reading workflow:
 - use graph search and fixed nodes when the graph is too large to rescan manually
 - use `局部聚焦` to collapse attention around the selected or pinned nodes
 - use `路径聚焦` when the question is “how does this node reach that node”
+- use the control drawer and detail drawer on demand so the graph remains the main surface
 - open node detail to inspect resolution basis and progressively expanded source
 
 ## Test
@@ -98,3 +100,5 @@ python scripts/dev.py quality
 - Frontend navigation design: [docs/2026-05-17-frontend-navigation-design.md](docs/2026-05-17-frontend-navigation-design.md)
 - Frontend path-reading requirements: [docs/2026-05-17-frontend-path-reading-requirements.md](docs/2026-05-17-frontend-path-reading-requirements.md)
 - Frontend path-reading design: [docs/2026-05-17-frontend-path-reading-design.md](docs/2026-05-17-frontend-path-reading-design.md)
+- Frontend shell simplification requirements: [docs/2026-05-17-frontend-shell-simplification-requirements.md](docs/2026-05-17-frontend-shell-simplification-requirements.md)
+- Frontend shell simplification design: [docs/2026-05-17-frontend-shell-simplification-design.md](docs/2026-05-17-frontend-shell-simplification-design.md)

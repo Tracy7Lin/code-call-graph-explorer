@@ -7,15 +7,51 @@
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body>
-    <main class="layout">
-      <section class="panel controls">
-        <div class="hero">
+    <main class="app-shell">
+      <header class="topbar">
+        <div class="topbar-copy">
           <p class="eyebrow">代码阅读原型</p>
           <h1>代码调用图阅读器</h1>
-          <p class="hint">
-            先把主干看清，再看支线。已确认、歧义、未解析三种状态会明确区分，不伪装成“都懂了”。
-          </p>
+          <p class="topbar-note">默认只看图谱。控制与详情按需展开，避免页面长期被侧栏占满。</p>
         </div>
+        <div class="topbar-actions">
+          <div class="topbar-summary">
+            <span id="overview-file" class="topbar-file">尚未加载</span>
+            <span id="graph-summary" class="topbar-meta">当前还没有可阅读的节点摘要。</span>
+          </div>
+          <div class="topbar-buttons">
+            <button id="open-controls" type="button" class="ghost-button">打开控制台</button>
+            <button id="open-detail" type="button" class="ghost-button">节点详情</button>
+          </div>
+        </div>
+      </header>
+
+      <section class="graph-stage panel">
+        <div class="graph-stage-header">
+          <div>
+            <div class="section-title">图谱视图</div>
+            <span id="graph-title">尚未加载调用图</span>
+          </div>
+          <div id="graph-mode-hint" class="graph-mode-hint">加载后会根据节点数量自动切换阅读布局。</div>
+        </div>
+        <div class="graph-canvas-shell">
+          <svg id="graph" viewBox="0 0 1280 820" aria-label="调用图"></svg>
+        </div>
+      </section>
+    </main>
+
+    <div id="drawer-backdrop" class="drawer-backdrop" hidden></div>
+
+    <aside id="controls-drawer" class="drawer drawer-left" aria-hidden="true">
+      <div class="drawer-header">
+        <div>
+          <div class="section-title">控制台</div>
+          <h2>分析与导航</h2>
+        </div>
+        <button id="close-controls" type="button" class="drawer-close">关闭</button>
+      </div>
+
+      <div class="drawer-body">
         <form id="analyze-form">
           <label>
             仓库根目录
@@ -28,10 +64,10 @@
           <button type="submit">分析文件</button>
         </form>
 
-        <section class="overview-card">
+        <section class="drawer-card">
           <div class="overview-heading">
-            <h2>阅读概览</h2>
-            <span id="overview-file" class="overview-file">尚未加载</span>
+            <h3>阅读概览</h3>
+            <span id="overview-file-drawer" class="overview-file">尚未加载</span>
           </div>
           <div class="overview-metrics">
             <div class="metric">
@@ -58,7 +94,7 @@
           </p>
         </section>
 
-        <section class="view-controls">
+        <section class="drawer-card">
           <div class="section-title">视图过滤</div>
           <div class="toggle-group">
             <button class="filter-chip active" data-filter="all" type="button">全部</button>
@@ -74,7 +110,7 @@
           </div>
         </section>
 
-        <section class="navigation-card">
+        <section class="drawer-card">
           <div class="section-title">图内定位</div>
           <label class="search-field">
             节点搜索
@@ -86,7 +122,7 @@
           </div>
         </section>
 
-        <section class="navigation-card">
+        <section class="drawer-card">
           <div class="section-title">固定关注节点</div>
           <p id="pin-summary" class="navigation-note">固定主干节点后，可以配合“局部聚焦”缩小阅读范围。</p>
           <div id="pinned-nodes" class="anchor-list">
@@ -94,31 +130,25 @@
           </div>
         </section>
 
-        <section class="navigation-card">
+        <section class="drawer-card">
           <div class="section-title">路径阅读</div>
           <p id="path-summary" class="navigation-note">
             先选择一个节点，再固定一个相关节点，然后切到“路径聚焦”查看两者之间的最短静态路径。
           </p>
         </section>
-      </section>
+      </div>
+    </aside>
 
-      <section class="panel graph-panel">
-        <div class="toolbar">
-          <div>
-            <div class="section-title">图谱视图</div>
-            <span id="graph-title">尚未加载调用图</span>
-          </div>
-          <div class="toolbar-meta">
-            <div id="graph-summary" class="graph-summary">当前还没有可阅读的节点摘要。</div>
-            <div id="graph-mode-hint" class="graph-mode-hint">加载后会根据节点数量自动切换阅读布局。</div>
-          </div>
+    <aside id="detail-drawer" class="drawer drawer-right" aria-hidden="true">
+      <div class="drawer-header">
+        <div>
+          <div class="section-title">节点详情</div>
+          <h2>聚焦查看</h2>
         </div>
-        <div class="graph-canvas-shell">
-          <svg id="graph" viewBox="0 0 1280 820" aria-label="调用图"></svg>
-        </div>
-      </section>
+        <button id="close-detail" type="button" class="drawer-close">关闭</button>
+      </div>
 
-      <aside class="panel detail-panel">
+      <div class="drawer-body">
         <div class="detail-actions">
           <label class="checkbox-row"><input id="with-llm" type="checkbox" /> 显示 insight</label>
           <div class="detail-buttons">
@@ -129,8 +159,9 @@
         </div>
         <div id="detail-empty">选择一个节点后，这里会展示它的职责、上下游、依据和源码片段。</div>
         <div id="detail-content" hidden></div>
-      </aside>
-    </main>
+      </div>
+    </aside>
+
     <script src="/app.js"></script>
   </body>
 </html>
